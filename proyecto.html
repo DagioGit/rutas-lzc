@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>El proyecto · Rutas LZC</title>
+    <meta name="description" content="Metodología, objetivos, fases y equipo de Rutas LZC, plataforma para el transporte en combi de Lázaro Cárdenas, Michoacán, con la Ruta 2 «Pollo» como ruta piloto.">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+    <header class="barra" id="barra">
+        <div class="barra__interior">
+            <a href="index.html" class="logo" aria-label="Rutas LZC, inicio">LZC.</a>
+            <nav class="barra__nav" id="navLinks" aria-label="Secciones">
+                <a href="index.html#rutas">Rutas</a>
+                <a href="index.html#recorrido">Recorrido</a>
+                <a href="index.html#paradas">Paradas</a>
+                <a href="index.html#caseta">Caseta</a>
+                <a href="proyecto.html" aria-current="page">Proyecto</a>
+                <a href="parada.html?id=A" class="barra__vivo">En vivo</a>
+            </nav>
+            <a href="parada.html?id=A" class="barra__busca" aria-label="Próxima combi en la Parada A">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 7.5V12l3 2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+                <span>Ruta 2 · Próxima combi en A</span>
+                <strong data-eta="A">—</strong>
+            </a>
+            <div class="barra__acciones">
+                <a href="ficha-tecnica.html" class="boton boton--borde">Ficha técnica</a>
+                <a href="index.html#mapa" class="boton boton--negro">Ver mapa</a>
+            </div>
+            <button class="barra__menu" id="navToggle" aria-label="Abrir menú" aria-expanded="false" aria-controls="navLinks">
+                <span></span><span></span>
+            </button>
+        </div>
+    </header>
+
+    <main>
+        <header class="pagina-cabeza">
+            <div>
+                <p class="mono-etiqueta">Página · Rutas LZC</p>
+                <h1>El proyecto</h1>
+                <p class="pagina-cabeza__texto">{Texto breve: de dónde nace la propuesta, a quién va dirigida y qué problema resuelve en el transporte de la ciudad.}</p>
+            </div>
+            <aside class="portada__lado" aria-label="Resumen del proyecto">
+                <article class="dato">
+                    <p class="mono-etiqueta">Tipo</p>
+                    <p class="dato__texto">Plataforma de transporte en combi: paradas, casetas, contador y mapa en vivo</p>
+                    <p class="dato__nota">Lázaro Cárdenas, Michoacán</p>
+                </article>
+                <article class="dato">
+                    <p class="mono-etiqueta">Avance</p>
+                    <p class="dato__texto">Fase 1 de 3 · Ruta piloto (Ruta 2 «Pollo»)</p>
+                    <div class="avance" aria-label="Fase 1 de 3"><span class="is-hecho"></span><span></span><span></span></div>
+                </article>
+            </aside>
+        </header>
+
+        <!-- ===== METODOLOGÍA ===== -->
+        <section class="seccion" id="metodologia">
+            <header class="seccion__cabeza">
+                <p class="mono-etiqueta">01 — Metodología</p>
+                <h2>Método</h2>
+                <p>Cómo se construyó la propuesta, con herramientas y datos abiertos.</p>
+            </header>
+            <ol class="tarjetas">
+                <li>
+                    <span class="mono-etiqueta">Paso 01</span>
+                    <h3>Levantamiento</h3>
+                    <p>Revisión de cada esquina en Google Street View y en imagen satelital: fachadas, banquetas, camellones, mobiliario y vegetación.</p>
+                </li>
+                <li>
+                    <span class="mono-etiqueta">Paso 02</span>
+                    <h3>Trazo del recorrido</h3>
+                    <p>El recorrido real de la Ruta 2, de la base en Calle Tamarindo al Centro y de regreso, dibujado por el equipo en Google Earth sobre las calles de la ciudad.</p>
+                </li>
+                <li>
+                    <span class="mono-etiqueta">Paso 03</span>
+                    <h3>Modelado 3D</h3>
+                    <p>Maqueta a escala de la base y de cada parada, con sus casas, comercios, árboles y postes, la caseta, el contador y las combis.</p>
+                </li>
+                <li>
+                    <span class="mono-etiqueta">Paso 04</span>
+                    <h3>Análisis de uso</h3>
+                    <p>Un día de servicio simulado (una combi cada 15 minutos), posición del sol, iluminación nocturna y cobertura a pie de cinco minutos.</p>
+                </li>
+            </ol>
+        </section>
+
+        <!-- ===== OBJETIVOS ===== -->
+        <section class="seccion" id="objetivos">
+            <header class="seccion__cabeza">
+                <p class="mono-etiqueta">02 — Objetivos</p>
+                <h2>Objetivos</h2>
+                <p>Cuatro criterios guían cada decisión del proyecto.</p>
+            </header>
+            <div class="lista-grande">
+                <article><span class="mono-etiqueta">Objetivo 01</span><h3>Identidad</h3><p>{Descripción: cómo el proyecto fortalece la identidad de la ciudad}</p></article>
+                <article><span class="mono-etiqueta">Objetivo 02</span><h3>Experiencia</h3><p>{Descripción: cómo mejora la experiencia de habitantes y visitantes}</p></article>
+                <article><span class="mono-etiqueta">Objetivo 03</span><h3>Turismo e inversión</h3><p>{Descripción: cómo se impulsa el turismo y la inversión}</p></article>
+                <article><span class="mono-etiqueta">Objetivo 04</span><h3>Calidad de vida</h3><p>{Descripción: cómo se eleva la calidad de vida en el espacio público}</p></article>
+            </div>
+        </section>
+
+        <!-- ===== CONTEXTO ===== -->
+        <section class="seccion" id="puerto">
+            <div class="contexto">
+                <div class="contexto__texto">
+                    <p class="mono-etiqueta">03 — Contexto</p>
+                    <h2>El puerto más grande de México se llama igual que la ciudad</h2>
+                    <p>{Texto base: descripción general de Lázaro Cárdenas como ciudad portuaria e industrial}</p>
+                    <p>{Texto base: relación entre la zona portuaria, la playa y el espacio público de la ciudad}</p>
+                </div>
+                <dl class="contexto__cifras">
+                    <div><dd>1</dd><dt>{Indicador oficial 1}</dt></div>
+                    <div><dd>27</dd><dt>{Indicador oficial 2}</dt></div>
+                    <div><dd>40</dd><dt>{Indicador oficial 3}</dt></div>
+                </dl>
+                <p class="contexto__nota mono-etiqueta">Cifras de ejemplo · se sustituirán por datos oficiales</p>
+            </div>
+        </section>
+
+        <!-- ===== FASES ===== -->
+        <section class="seccion" id="fases">
+            <header class="seccion__cabeza">
+                <p class="mono-etiqueta">04 — Fases</p>
+                <h2>Fases</h2>
+                <p>Empezamos con una sola ruta para probarlo todo; las siguientes rutas usan la misma plataforma.</p>
+            </header>
+            <ol class="fases">
+                <li class="fase fase--actual">
+                    <span class="mono-etiqueta">Fase 1 · En curso</span>
+                    <h3>Ruta piloto</h3>
+                    <p>Ruta 2 «Pollo»: base, recorrido, primeras paradas, contador de llegada y maqueta 3D de cada punto.</p>
+                </li>
+                <li class="fase">
+                    <span class="mono-etiqueta">Fase 2 · Siguiente</span>
+                    <h3>Diseño definitivo de la caseta</h3>
+                    <p>{Descripción: modelado en Blender de la caseta definitiva e integración en cada parada.}</p>
+                </li>
+                <li class="fase">
+                    <span class="mono-etiqueta">Fase 3 · A futuro</span>
+                    <h3>Más rutas y más paradas</h3>
+                    <p>Sumar las demás rutas de combi de Lázaro Cárdenas y nuevas paradas en la Ruta 2, con la ubicación real de cada unidad.</p>
+                </li>
+            </ol>
+        </section>
+
+        <!-- ===== EQUIPO ===== -->
+        <section class="seccion" id="equipo">
+            <header class="seccion__cabeza">
+                <p class="mono-etiqueta">05 — Equipo</p>
+                <h2>Equipo</h2>
+                <p>{Escuela, materia o grupo al que pertenece el proyecto.}</p>
+            </header>
+            <div class="equipo equipo--cinco">
+                <article class="persona"><span class="persona__foto" aria-hidden="true">1</span><strong>{Nombre}</strong><span>{Rol en el proyecto}</span></article>
+                <article class="persona"><span class="persona__foto" aria-hidden="true">2</span><strong>{Nombre}</strong><span>{Rol en el proyecto}</span></article>
+                <article class="persona"><span class="persona__foto" aria-hidden="true">3</span><strong>{Nombre}</strong><span>{Rol en el proyecto}</span></article>
+                <article class="persona"><span class="persona__foto" aria-hidden="true">4</span><strong>{Nombre}</strong><span>{Rol en el proyecto}</span></article>
+                <article class="persona"><span class="persona__foto" aria-hidden="true">5</span><strong>{Nombre}</strong><span>{Rol en el proyecto}</span></article>
+            </div>
+        </section>
+
+        <!-- ===== MÁS ===== -->
+        <section class="seccion" id="mas">
+            <header class="seccion__cabeza seccion__cabeza--chica">
+                <p class="mono-etiqueta">06 — Sigue explorando</p>
+                <h2>Explora</h2>
+            </header>
+            <div class="explora">
+                <a href="index.html" class="explora__tarjeta">
+                    <span class="mono-etiqueta">Inicio</span>
+                    <strong>Rutas y paradas</strong>
+                    <span class="explora__desc">La ruta piloto en el mapa, la base y las paradas en 3D, y la caseta.</span>
+                    <span class="explora__ir" aria-hidden="true">→</span>
+                </a>
+                <a href="parada.html?id=A" class="explora__tarjeta explora__tarjeta--oscura">
+                    <span class="mono-etiqueta">Pantalla de parada</span>
+                    <strong>Parada en vivo</strong>
+                    <span class="explora__desc">Cuánto falta para la combi, dónde van las unidades y aviso con voz.</span>
+                    <span class="explora__ir" aria-hidden="true">→</span>
+                </a>
+                <a href="ficha-tecnica.html" class="explora__tarjeta">
+                    <span class="mono-etiqueta">Documento</span>
+                    <strong>Ficha técnica</strong>
+                    <span class="explora__desc">Hojas tamaño carta, descargables en PDF.</span>
+                    <span class="explora__ir" aria-hidden="true">→</span>
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="pie">
+        <div class="pie__rejilla">
+            <div class="pie__marca">
+                <a href="index.html" class="logo">LZC.</a>
+                <p>Plataforma para el transporte en combi de Lázaro Cárdenas, Michoacán. Ruta piloto: Ruta 2 «Pollo».</p>
+            </div>
+            <nav aria-label="Páginas">
+                <p class="mono-etiqueta">Páginas</p>
+                <ul class="pie__enlaces">
+                    <li><a href="index.html">Inicio</a></li>
+                    <li><a href="parada.html?id=A">Parada en vivo</a></li>
+                    <li><a href="proyecto.html">El proyecto</a></li>
+                    <li><a href="ficha-tecnica.html">Ficha técnica</a></li>
+                </ul>
+            </nav>
+            <nav aria-label="Rutas">
+                <p class="mono-etiqueta">Rutas</p>
+                <ul class="pie__enlaces">
+                    <li><a href="index.html#rutas">Ruta 2 «Pollo» · piloto</a></li>
+                    <li><a href="parada.html?id=A">Parada A en vivo</a></li>
+                    <li><a href="parada.html?id=B">Parada B en vivo</a></li>
+                    <li><a href="index.html#rutas">Próximas rutas</a></li>
+                </ul>
+            </nav>
+            <div>
+                <p class="mono-etiqueta">Datos</p>
+                <p class="pie__nota">Mapas: © colaboradores de OpenStreetMap y OpenFreeMap. Maquetas basadas en Google Street View e imagen satelital. Horario simulado.</p>
+            </div>
+        </div>
+        <div class="pie__base">
+            <span>© 2026 · Rutas LZC</span>
+            <span>Lázaro Cárdenas, Michoacán · 17.97°&nbsp;N, 102.22°&nbsp;O</span>
+        </div>
+    </footer>
+
+    <script src="ruta-2.js"></script>
+    <script src="horario.js"></script>
+    <script src="comun.js"></script>
+</body>
+
+</html>

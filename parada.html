@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0D0D0D">
+    <title>Parada en vivo · Rutas LZC</title>
+    <meta name="description" content="Rutas LZC: cuánto falta para la próxima combi en esta parada, dónde van las unidades y avisos con voz. Ruta piloto: Ruta 2 «Pollo».">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="parada.css">
+</head>
+
+<body class="pagina-vivo">
+
+    <header class="barra" id="barra">
+        <div class="barra__interior">
+            <a href="index.html" class="logo" aria-label="Rutas LZC, inicio">LZC.</a>
+            <nav class="barra__nav" id="navLinks" aria-label="Secciones">
+                <a href="index.html#rutas">Rutas</a>
+                <a href="index.html#recorrido">Recorrido</a>
+                <a href="index.html#paradas">Paradas</a>
+                <a href="index.html#caseta">Caseta</a>
+                <a href="proyecto.html">Proyecto</a>
+                <a href="parada.html?id=A" class="barra__vivo" aria-current="page">En vivo</a>
+            </nav>
+            <div class="barra__acciones">
+                <a href="ficha-tecnica.html" class="boton boton--borde">Ficha técnica</a>
+                <a href="index.html#mapa" class="boton boton--negro">Ver mapa</a>
+            </div>
+            <button class="barra__menu" id="navToggle" aria-label="Abrir menú" aria-expanded="false" aria-controls="navLinks">
+                <span></span><span></span>
+            </button>
+        </div>
+    </header>
+
+    <main class="envivo">
+        <!-- Encabezado de la parada -->
+        <header class="vivo__cabeza">
+            <div>
+                <p class="mono-etiqueta">Pantalla de parada · Ruta 2 «Pollo»</p>
+                <h1 class="vivo__titulo"><span class="vivo__letra" data-letra>A</span><span data-nombre>Parada A</span></h1>
+                <p class="vivo__calle" data-calle>Av. Melchor Ocampo</p>
+            </div>
+            <div class="vivo__herramientas">
+                <nav class="vivo__tabs" aria-label="Elegir parada" data-tabs></nav>
+                <div class="vivo__botones">
+                    <button type="button" class="boton boton--borde" data-texto-grande aria-pressed="false">
+                        <span aria-hidden="true" class="vivo__aa">Aa</span> Texto grande
+                    </button>
+                    <button type="button" class="boton boton--negro" data-modo-pantalla>
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M8 21h8M12 17v4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+                        Modo pantalla
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div class="vivo__rejilla">
+            <!-- Pantalla principal -->
+            <section class="pantalla" aria-live="polite" aria-label="Próxima combi">
+                <div class="pantalla__arriba">
+                    <p class="mono-etiqueta">Próxima combi</p>
+                    <span class="pantalla__estado" data-chip-estado>A tiempo</span>
+                    <p class="pantalla__reloj" data-reloj>--:--</p>
+                </div>
+                <p class="pantalla__tiempo" data-tiempo>—</p>
+                <p class="pantalla__unidad" data-unidad>minutos : segundos</p>
+                <div class="pantalla__barra" aria-hidden="true"><span data-progreso></span></div>
+                <ol class="pantalla__despues" data-despues></ol>
+                <p class="pantalla__aviso" data-aviso hidden></p>
+            </section>
+
+            <!-- Fichas laterales -->
+            <aside class="vivo__lado">
+                <article class="dato">
+                    <p class="mono-etiqueta">Avisos</p>
+                    <p class="dato__texto">Te avisamos con sonido y voz cuando falten 2 minutos.</p>
+                    <div class="interruptores">
+                        <button type="button" class="interruptor" role="switch" aria-checked="false" data-avisar>
+                            <span class="interruptor__pista"><span></span></span>Avisarme a 2&nbsp;min
+                        </button>
+                        <button type="button" class="boton boton--borde boton--ancho" data-leer>
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M16.5 8.5a5 5 0 010 7M19 6a8.5 8.5 0 010 12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+                            Leer en voz alta
+                        </button>
+                    </div>
+                </article>
+                <article class="dato dato--foto">
+                    <img src="img/parada-a.jpg" alt="" data-foto width="1600" height="1000">
+                    <p class="mono-etiqueta">Tu parada</p>
+                    <p class="dato__texto" data-referencia></p>
+                    <p class="dato__nota" data-coordenadas></p>
+                    <a class="dato__vinculo" href="index.html#mapa">Ver en el mapa <span aria-hidden="true">→</span></a>
+                </article>
+                <article class="dato dato--qr">
+                    <div class="qr" data-qr aria-label="Código QR de esta parada"></div>
+                    <div>
+                        <p class="mono-etiqueta">Código QR</p>
+                        <p class="dato__nota">Va impreso en la caseta: al escanearlo se abre esta pantalla en el celular.</p>
+                    </div>
+                </article>
+            </aside>
+        </div>
+
+        <!-- Línea con las combis en servicio -->
+        <section class="vivo-linea" aria-label="Combis en el recorrido">
+            <div class="vivo-linea__cabeza">
+                <p class="mono-etiqueta">Combis en el recorrido</p>
+                <p class="vivo-linea__cuenta"><b data-en-servicio>3</b> en servicio · una cada <span data-frecuencia>15</span>&nbsp;min</p>
+            </div>
+            <div class="vivo-linea__pista" data-pista>
+                <div class="vivo-linea__ruta"></div>
+            </div>
+        </section>
+
+        <!-- Desde aquí -->
+        <section class="vivo-tramos">
+            <div class="vivo-tramos__cabeza">
+                <p class="mono-etiqueta">Desde esta parada</p>
+                <p class="dato__nota">Tiempo arriba de la combi, sin contar la espera.</p>
+            </div>
+            <ol class="vivo-tramos__lista" data-tramos-vivo></ol>
+        </section>
+
+        <!-- Reportes -->
+        <section class="vivo-reporte" id="reportar">
+            <div class="vivo-reporte__texto">
+                <p class="mono-etiqueta">Reportar un problema</p>
+                <h2>¿Algo no funciona en esta parada?</h2>
+                <p>Avísanos si la caseta está dañada, una luminaria no prende o la combi no pasó. Cada reporte recibe un folio para darle seguimiento.</p>
+                <p class="dato__nota">Demostración: por ahora los reportes se guardan solo en este dispositivo.</p>
+            </div>
+            <form class="formulario" data-reporte>
+                <fieldset>
+                    <legend class="mono-etiqueta">Tipo de problema</legend>
+                    <div class="opciones">
+                        <label><input type="radio" name="tipo" value="Caseta dañada" checked><span>Caseta dañada</span></label>
+                        <label><input type="radio" name="tipo" value="Luminaria apagada"><span>Luminaria apagada</span></label>
+                        <label><input type="radio" name="tipo" value="Contador sin funcionar"><span>Contador sin funcionar</span></label>
+                        <label><input type="radio" name="tipo" value="La combi no pasó"><span>La combi no pasó</span></label>
+                        <label><input type="radio" name="tipo" value="Otro"><span>Otro</span></label>
+                    </div>
+                </fieldset>
+                <label class="campo">
+                    <span class="mono-etiqueta">Detalles (opcional)</span>
+                    <textarea name="detalle" rows="3" maxlength="280" placeholder="Por ejemplo: el panel del techo está roto del lado de la calle."></textarea>
+                </label>
+                <div class="formulario__pie">
+                    <button type="submit" class="boton boton--negro">Enviar reporte</button>
+                    <p class="formulario__ok" data-reporte-ok hidden></p>
+                </div>
+                <ul class="reportes" data-reportes></ul>
+            </form>
+        </section>
+
+        <!-- Modo pantalla: salida -->
+        <button type="button" class="salir-pantalla" data-salir-pantalla>Salir del modo pantalla</button>
+    </main>
+
+    <footer class="pie">
+        <div class="pie__rejilla">
+            <div class="pie__marca">
+                <a href="index.html" class="logo">LZC.</a>
+                <p>Plataforma para el transporte en combi de Lázaro Cárdenas, Michoacán. Ruta piloto: Ruta 2 «Pollo».</p>
+            </div>
+            <nav aria-label="Páginas">
+                <p class="mono-etiqueta">Páginas</p>
+                <ul class="pie__enlaces">
+                    <li><a href="index.html">Inicio</a></li>
+                    <li><a href="parada.html?id=A">Parada en vivo</a></li>
+                    <li><a href="proyecto.html">El proyecto</a></li>
+                    <li><a href="ficha-tecnica.html">Ficha técnica</a></li>
+                </ul>
+            </nav>
+            <nav aria-label="Rutas">
+                <p class="mono-etiqueta">Rutas</p>
+                <ul class="pie__enlaces">
+                    <li><a href="index.html#rutas">Ruta 2 «Pollo» · piloto</a></li>
+                    <li><a href="parada.html?id=A">Parada A en vivo</a></li>
+                    <li><a href="parada.html?id=B">Parada B en vivo</a></li>
+                    <li><a href="index.html#rutas">Próximas rutas</a></li>
+                </ul>
+            </nav>
+            <div>
+                <p class="mono-etiqueta">Datos</p>
+                <p class="pie__nota">Horario simulado: una combi cada <span data-frecuencia>15</span>&nbsp;min a 18&nbsp;km/h. Se reemplazará por la ubicación real de las unidades.</p>
+            </div>
+        </div>
+        <div class="pie__base">
+            <span>© 2026 · Rutas LZC</span>
+            <span>Lázaro Cárdenas, Michoacán · 17.97°&nbsp;N, 102.22°&nbsp;O</span>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+    <script src="ruta-2.js"></script>
+    <script src="horario.js"></script>
+    <script src="comun.js"></script>
+    <script src="parada.js"></script>
+</body>
+
+</html>

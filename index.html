@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rutas LZC · Transporte en combi de Lázaro Cárdenas</title>
+    <meta name="description" content="Plataforma para el transporte en combi de Lázaro Cárdenas, Michoacán: recorridos, paradas con caseta y contador de llegada, y maquetas 3D de cada parada. Ruta piloto: Ruta 2 «Pollo».">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- Three.js para la combi del mapa y las maquetas 3D -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+</head>
+
+<body>
+
+    <!-- ===== BARRA SUPERIOR ===== -->
+    <header class="barra" id="barra">
+        <div class="barra__interior">
+            <a href="index.html" class="logo" aria-label="Rutas LZC, inicio">LZC.</a>
+            <nav class="barra__nav" id="navLinks" aria-label="Secciones">
+                <a href="#rutas">Rutas</a>
+                <a href="#recorrido">Recorrido</a>
+                <a href="#paradas">Paradas</a>
+                <a href="#caseta">Caseta</a>
+                <a href="proyecto.html">Proyecto</a>
+                <a href="parada.html?id=A" class="barra__vivo">En vivo</a>
+            </nav>
+            <a href="parada.html?id=A" class="barra__busca" aria-label="Próxima combi en la Parada A">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 7.5V12l3 2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+                <span>Ruta 2 · Próxima combi en A</span>
+                <strong data-eta="A">—</strong>
+            </a>
+            <div class="barra__acciones">
+                <a href="ficha-tecnica.html" class="boton boton--borde">Ficha técnica</a>
+                <button type="button" class="boton boton--negro" data-abrir-mapa>Ver mapa</button>
+            </div>
+            <button class="barra__menu" id="navToggle" aria-label="Abrir menú" aria-expanded="false" aria-controls="navLinks">
+                <span></span><span></span>
+            </button>
+        </div>
+    </header>
+
+    <main>
+        <!-- ===== PORTADA ===== -->
+        <section class="portada" id="inicio">
+            <div class="portada__cabeza">
+                <p class="portada__meta">
+                    <span>Transporte en combi</span>
+                    <span class="etiqueta-caja">Oct 2026</span>
+                    <span>Ruta piloto <b>2</b>&thinsp;<small>«Pollo»</small></span>
+                </p>
+                <h1 class="portada__titulo">Rutas LZC</h1>
+                <p class="portada__autor">
+                    <span class="portada__disco" aria-hidden="true">LZC</span>
+                    <a href="#rutas">Paradas, casetas y combis en tiempo real · Lázaro Cárdenas, Michoacán</a>
+                </p>
+            </div>
+
+            <div class="portada__rejilla">
+                <!-- Fichas de la izquierda -->
+                <aside class="portada__lado" aria-label="Datos del recorrido">
+                    <article class="dato">
+                        <p class="mono-etiqueta">Ruta 2 · Recorrido</p>
+                        <svg class="dato__trazo" data-trazo viewBox="0 0 200 110" aria-hidden="true"></svg>
+                        <p class="dato__valor" data-total-km>19.5&nbsp;km</p>
+                        <p class="dato__nota"><span data-total-min>65&nbsp;min</span> por vuelta · ida y regreso</p>
+                    </article>
+                    <article class="dato">
+                        <p class="mono-etiqueta">Paradas</p>
+                        <p class="dato__valor" data-num-paradas>2</p>
+                        <ul class="dato__lista" data-lista-paradas></ul>
+                    </article>
+                    <article class="dato">
+                        <p class="mono-etiqueta">Base</p>
+                        <p class="dato__texto">Calle Tamarindo</p>
+                        <p class="dato__nota">Col. Benito Juárez · salida cada 15&nbsp;min</p>
+                    </article>
+                </aside>
+
+                <!-- Vitrina: la maqueta 3D -->
+                <figure class="vitrina" data-vitrina>
+                    <img src="img/parada-a-noche.jpg" alt="Maqueta 3D de la Parada A de noche, con la caseta iluminada y la combi llegando" data-vitrina-img width="1600" height="1000">
+                    <div class="vitrina__arriba">
+                        <span class="mono-etiqueta" data-vitrina-tipo>Maqueta 3D</span>
+                        <div class="vitrina__tabs" role="tablist" aria-label="Elegir parada" data-vitrina-tabs></div>
+                    </div>
+                    <figcaption class="vitrina__abajo">
+                        <div>
+                            <p class="vitrina__nombre" data-vitrina-nombre>Parada A</p>
+                            <p class="vitrina__calle" data-vitrina-calle>Av. Melchor Ocampo</p>
+                        </div>
+                        <div class="vitrina__acciones">
+                            <button type="button" class="boton boton--claro" data-vitrina-abrir data-abrir-zona="A">Abrir en 3D</button>
+                            <button type="button" class="boton boton--vidrio" data-abrir-mapa>Ver en el mapa</button>
+                        </div>
+                    </figcaption>
+                </figure>
+
+                <!-- Fichas de la derecha -->
+                <aside class="portada__lado" aria-label="Servicio en vivo">
+                    <article class="dato dato--oscuro">
+                        <div class="dato__fila-cabeza">
+                            <p class="mono-etiqueta">Próxima combi</p>
+                            <span class="vivo">En vivo</span>
+                        </div>
+                        <ol class="llegadas" data-tablero></ol>
+                        <a href="parada.html?id=A" class="dato__enlace">Ver la parada en vivo <span aria-hidden="true">→</span></a>
+                    </article>
+                    <article class="dato">
+                        <p class="mono-etiqueta">Servicio · Ruta 2</p>
+                        <p class="dato__valor">Cada <span data-frecuencia>15</span>&nbsp;min</p>
+                        <dl class="dato__pares">
+                            <div><dt>Velocidad</dt><dd>18&nbsp;km/h</dd></div>
+                            <div><dt>Unidades</dt><dd data-unidades>5 combis</dd></div>
+                        </dl>
+                    </article>
+                    <article class="dato">
+                        <p class="mono-etiqueta">Avance</p>
+                        <p class="dato__texto">Fase 1 de 3 · Ruta piloto</p>
+                        <div class="avance" aria-label="Fase 1 de 3"><span class="is-hecho"></span><span></span><span></span></div>
+                    </article>
+                </aside>
+            </div>
+
+            <!-- Línea del recorrido -->
+            <div class="linea-ruta">
+                <div class="linea-ruta__cabeza">
+                    <p class="mono-etiqueta">Ruta 2 · Línea del recorrido</p>
+                    <p class="mono-etiqueta mono-etiqueta--suave">Día simulado · <span data-hora-sim>06:00</span> · una combi cada 15&nbsp;min</p>
+                </div>
+                <div class="diagrama" aria-label="Diagrama del recorrido">
+                    <div class="diagrama__linea" data-diagrama>
+                        <span class="diagrama__combi" id="diagramaCombi" aria-hidden="true" hidden></span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== BARRA FLOTANTE ===== -->
+        <nav class="flotante" aria-label="Accesos rápidos">
+            <a href="#inicio" class="flotante__logo" aria-label="Inicio">LZC.</a>
+            <a href="#rutas" class="flotante__link">Rutas</a>
+            <a href="#recorrido" class="flotante__link">Recorrido</a>
+            <a href="#paradas" class="flotante__link">Paradas</a>
+            <a href="#caseta" class="flotante__link">Caseta</a>
+            <a href="parada.html?id=A" class="flotante__link">En vivo</a>
+            <a href="proyecto.html" class="flotante__link">Proyecto</a>
+            <button type="button" class="flotante__boton" data-abrir-mapa>Ver mapa</button>
+        </nav>
+
+        <!-- ===== PROPUESTA ===== -->
+        <section class="seccion seccion--intro">
+            <p class="mono-etiqueta">00 — Propuesta</p>
+            <p class="declaracion">Las combis mueven a buena parte de Lázaro Cárdenas, pero esperar una es adivinar. Proponemos paradas fijas con caseta, un contador que dice cuánto falta para la próxima unidad y un mapa con las combis en camino. Empezamos con la Ruta 2 «Pollo»; la misma plataforma sirve para cualquier ruta de la ciudad.</p>
+        </section>
+
+        <!-- ===== RUTAS ===== -->
+        <section class="seccion" id="rutas">
+            <header class="seccion__cabeza">
+                <p class="mono-etiqueta">01 — Rutas</p>
+                <h2>Rutas</h2>
+                <p>La plataforma es para todas las rutas de combi de Lázaro Cárdenas. Empezamos con una sola, la Ruta 2 «Pollo», como ruta piloto: en ella se prueba el recorrido, las paradas, la caseta y el contador antes de sumar las demás.</p>
+            </header>
+            <div class="rutas">
+                <article class="ruta-tarjeta">
+                    <span class="ruta-tarjeta__numero" aria-hidden="true">2</span>
+                    <div>
+                        <p class="mono-etiqueta">Ruta piloto <span class="ruta-estado">En prueba</span></p>
+                        <h3>Ruta 2 · Pollo</h3>
+                        <p>Sale de su base en Calle Tamarindo (Col. Benito Juárez), toma el Libramiento a Sicartsa y la Av. Melchor Ocampo frente al Tecnológico, cruza Fidelac por la Av. Autonomía Universitaria y llega al Centro por la Col. Ejidal. Regresa por la Av. Río Balsas y la Av. Belisario Domínguez, frente a la plaza comercial, y vuelve a la base por Melchor Ocampo y el Libramiento.</p>
+                    </div>
+                    <dl class="ruta-tarjeta__datos">
+                        <div><dt>Recorrido</dt><dd data-total-km>19.5&nbsp;km</dd></div>
+                        <div><dt>Vuelta</dt><dd data-total-min>65&nbsp;min</dd></div>
+                        <div><dt>Frecuencia</dt><dd>Cada <span data-frecuencia>15</span>&nbsp;min</dd></div>
+                        <div><dt>Paradas</dt><dd><span data-num-paradas>2</span> + base</dd></div>
+                    </dl>
+                </article>
+                <article class="sumar-ruta">
+                    <p class="mono-etiqueta">Siguientes rutas</p>
+                    <h3>Cómo se suma una ruta</h3>
+                    <ol>
+                        <li><span><b>Recorrido y base.</b> Se registra el trazo real y el lugar de donde salen las unidades.</span></li>
+                        <li><span><b>Paradas.</b> Se eligen con choferes y vecinos, y se modelan en 3D con su entorno.</span></li>
+                        <li><span><b>Horario.</b> Frecuencia y número de combis; el contador calcula cada llegada.</span></li>
+                        <li><span><b>Casetas.</b> Se instala la caseta con su código QR para ver la parada en vivo.</span></li>
+                    </ol>
+                </article>
+            </div>
+        </section>
+
+        <!-- ===== RECORRIDO ===== -->
+        <section class="seccion" id="recorrido">
+            <header class="seccion__cabeza">
+                <p class="mono-etiqueta">02 — Recorrido · Ruta 2</p>
+                <h2>Recorrido</h2>
+                <p>Un día de servicio simulado: de la base sale una combi cada 15 minutos (en el mapa, cada minuto dura un segundo) y recorre la ruta parando en cada caseta. Elige una parada para ver cuándo llega la próxima, sigue una combi o activa la cobertura a pie.</p>
+            </header>
+
+            <div class="con-lado">
+                <aside class="lado">
+                    <dl class="ficha ficha--lado">
+                        <div><dt>Longitud</dt><dd data-total-km>19.5&nbsp;km</dd></div>
+                        <div><dt>Vuelta</dt><dd data-total-min>65&nbsp;min</dd></div>
+                        <div><dt>Frecuencia</dt><dd>Una combi cada 15&nbsp;min, de 6:00 a 22:00</dd></div>
+                        <div><dt>Base</dt><dd>Calle Tamarindo, Col. Benito Juárez</dd></div>
+                    </dl>
+                    <ul class="leyenda">
+                        <li><span class="leyenda__linea"></span>Recorrido de la Ruta 2</li>
+                        <li><span class="leyenda__parada">A</span>Parada propuesta</li>
+                        <li><span class="leyenda__base"></span>Base de las combis</li>
+                        <li><span class="chip__combi"></span>Combi en servicio (simulación)</li>
+                    </ul>
+                    <button type="button" class="boton boton--negro boton--ancho" data-abrir-mapa>
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                        Mapa a pantalla completa
+                    </button>
+                    <p class="lado__nota">Recorrido real dibujado por el equipo en Google Earth. Las paradas A y B son las primeras propuestas; el horario es simulado.</p>
+                </aside>
+
+                <div class="recorrido__hueco" data-mapa-origen>
+                    <div class="recorrido__marco" data-mapa-marco>
+                        <div class="recorrido__mapa" id="mapaRuta" role="application" aria-label="Mapa del recorrido de la Ruta 2"></div>
+
+                        <aside class="panel" data-panel-ruta aria-label="Paradas de la ruta">
+                            <div class="panel__cabeza">
+                                <h3>Ruta 2 «Pollo»</h3>
+                                <span class="sello">Simulado</span>
+                            </div>
+                            <p class="panel__estado" data-estado aria-live="polite">Cargando el mapa…</p>
+                            <ol class="secuencia" data-secuencia></ol>
+                            <div class="panel__detalle" data-detalle></div>
+                            <details class="panel__tramos">
+                                <summary>Distancia entre paradas</summary>
+                                <ul data-tramos></ul>
+                            </details>
+                        </aside>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== PARADAS ===== -->
+        <section class="seccion" id="paradas">
+            <header class="seccion__cabeza">
+                <p class="mono-etiqueta">03 — Paradas · Ruta 2</p>
+                <h2>Paradas</h2>
+                <p>La base y las dos primeras paradas de la Ruta 2. Cada punto tiene su maqueta 3D hecha a partir de cómo se ve hoy la calle: casas, comercios, árboles, postes, la caseta, el contador de llegada y las combis. Se irán agregando más paradas.</p>
+            </header>
+            <div class="fichas" data-hojas></div>
+        </section>
+
+        <!-- ===== CASETA ===== -->
+        <section class="seccion" id="caseta">
+            <header class="seccion__cabeza">
+                <p class="mono-etiqueta">04 — Caseta</p>
+                <h2>Caseta</h2>
+                <p>Un mismo modelo para las paradas de todas las rutas. El equipo puede sustituirlo por su propio diseño: en la vista 3D basta con cargar el archivo .glb exportado de Blender.</p>
+            </header>
+            <div class="caseta">
+                <figure class="caseta__plano">
+                    <div class="caseta__plano-cabeza">
+                        <span class="mono-etiqueta">Alzado frontal</span>
+                        <span class="mono-etiqueta mono-etiqueta--suave">Esc. aprox. 1:50 · metros</span>
+                    </div>
+                    <svg viewBox="0 0 520 300" role="img" aria-labelledby="planoTitulo">
+                        <title id="planoTitulo">Alzado frontal de la caseta con el contador de llegada</title>
+                        <g class="plano__suelo"><line x1="20" y1="250" x2="500" y2="250"/></g>
+                        <rect class="plano__pieza" x="44" y="240" width="288" height="10"/>
+                        <rect class="plano__tactil" x="44" y="246" width="288" height="4"/>
+                        <rect class="plano__pieza" x="74" y="76" width="8" height="164"/>
+                        <rect class="plano__pieza" x="294" y="76" width="8" height="164"/>
+                        <polygon class="plano__techo" points="50,70 326,64 326,72 50,78"/>
+                        <line class="plano__led" x1="56" y1="80" x2="320" y2="74"/>
+                        <rect class="plano__vidrio" x="83" y="108" width="210" height="114"/>
+                        <rect class="plano__acento" x="83" y="160" width="210" height="12"/>
+                        <rect class="plano__pieza" x="110" y="200" width="144" height="5"/>
+                        <rect class="plano__pieza" x="118" y="205" width="4" height="35"/>
+                        <rect class="plano__pieza" x="242" y="205" width="4" height="35"/>
+                        <rect class="plano__pieza" x="392" y="102" width="37" height="138"/>
+                        <rect class="plano__acento-am" x="391" y="96" width="39" height="7"/>
+                        <rect class="plano__pantalla" x="397" y="120" width="27" height="50"/>
+                        <line class="plano__fino" x1="30" y1="250" x2="30" y2="80"/>
+                        <circle class="plano__acento-am" cx="30" cy="80" r="11"/>
+                        <g class="plano__cota">
+                            <line x1="50" y1="40" x2="326" y2="40"/><line x1="50" y1="34" x2="50" y2="46"/><line x1="326" y1="34" x2="326" y2="46"/>
+                            <text x="188" y="32">4.60</text>
+                            <line x1="352" y1="72" x2="352" y2="250"/><line x1="346" y1="72" x2="358" y2="72"/><line x1="346" y1="250" x2="358" y2="250"/>
+                            <text x="360" y="150" class="plano__vertical">2.90</text>
+                            <line x1="452" y1="96" x2="452" y2="250"/><line x1="446" y1="96" x2="458" y2="96"/><line x1="446" y1="250" x2="458" y2="250"/>
+                            <text x="460" y="162" class="plano__vertical">2.50</text>
+                        </g>
+                        <g class="plano__notas">
+                            <text x="188" y="285">CASETA SOLAR</text>
+                            <text x="411" y="285">CONTADOR</text>
+                        </g>
+                    </svg>
+                </figure>
+                <div class="caseta__texto">
+                    <dl class="ficha">
+                        <div><dt>Estructura</dt><dd>Marcos de acero en voladizo, acabado grafito</dd></div>
+                        <div><dt>Cubierta</dt><dd>Paneles fotovoltaicos con tira de iluminación LED al frente</dd></div>
+                        <div><dt>Contador</dt><dd>Tótem con pantalla a ambos lados que indica cuánto falta para la próxima combi</dd></div>
+                        <div><dt>Mobiliario</dt><dd>Banca con descansabrazos y respaldo de cristal esmerilado</dd></div>
+                        <div><dt>Accesibilidad</dt><dd>Plataforma a nivel de banqueta con franja táctil del lado de la calle</dd></div>
+                        <div><dt>Señalización</dt><dd>Disco con el número de cada ruta que para ahí («R2» en la ruta piloto)</dd></div>
+                        <div><dt>Dimensiones</dt><dd>4.60 × 2.50&nbsp;m de cubierta; 2.90&nbsp;m de altura libre</dd></div>
+                    </dl>
+                    <div class="caseta__acciones" data-acciones-caseta></div>
+                </div>
+                <div class="caseta__fotos">
+                <figure class="caseta__foto">
+                    <img src="img/parada-a-calle.jpg" alt="La caseta solar y el contador de llegada vistos desde la calle, frente a la barda blanca del Tecnológico" width="1600" height="1000">
+                    <figcaption><span class="mono-etiqueta">Vista a pie de calle</span><span>Parada A, frente a la barda blanca del Tecnológico</span></figcaption>
+                </figure>
+                <figure class="caseta__foto">
+                    <img src="img/parada-b-calle.jpg" alt="La caseta solar y el contador en la Parada B, frente al estacionamiento de la plaza comercial" width="1600" height="1000">
+                    <figcaption><span class="mono-etiqueta">Vista a pie de calle</span><span>Parada B, frente a la plaza comercial</span></figcaption>
+                </figure>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== MÁS ===== -->
+        <section class="seccion" id="mas">
+            <header class="seccion__cabeza seccion__cabeza--chica">
+                <p class="mono-etiqueta">05 — Más del proyecto</p>
+                <h2>Explora</h2>
+            </header>
+            <div class="explora">
+                <a href="parada.html?id=A" class="explora__tarjeta explora__tarjeta--oscura">
+                    <span class="mono-etiqueta">Nuevo · Pantalla de parada</span>
+                    <strong>Parada en vivo</strong>
+                    <span class="explora__desc">Lo que verá el pasajero al escanear el código QR de la caseta: cuánto falta para la combi, dónde van las unidades y aviso con voz.</span>
+                    <span class="explora__ir" aria-hidden="true">→</span>
+                </a>
+                <a href="proyecto.html" class="explora__tarjeta">
+                    <span class="mono-etiqueta">Página</span>
+                    <strong>El proyecto</strong>
+                    <span class="explora__desc">Metodología, objetivos, fases y el equipo de cinco personas detrás de la propuesta.</span>
+                    <span class="explora__ir" aria-hidden="true">→</span>
+                </a>
+                <a href="ficha-tecnica.html" class="explora__tarjeta">
+                    <span class="mono-etiqueta">Documento</span>
+                    <strong>Ficha técnica</strong>
+                    <span class="explora__desc">Hojas tamaño carta con la plataforma, el recorrido de la Ruta 2, la base, cada parada y la caseta. Descargable en PDF.</span>
+                    <span class="explora__ir" aria-hidden="true">→</span>
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <!-- ===== MAPA A PANTALLA COMPLETA ===== -->
+    <div class="mapa-completo" data-mapa-completo hidden role="dialog" aria-modal="true" aria-label="Mapa del recorrido a pantalla completa">
+        <div class="mapa-completo__barra">
+            <span class="logo logo--claro">LZC.</span>
+            <p class="mono-etiqueta">Recorrido · Ruta 2 «Pollo»</p>
+            <p class="mapa-completo__eta">Día simulado · <b data-hora-sim>06:00</b></p>
+            <button type="button" class="boton boton--claro" data-cerrar-mapa>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                Cerrar
+            </button>
+        </div>
+        <div class="mapa-completo__cuerpo" data-mapa-destino></div>
+    </div>
+
+    <!-- ===== PIE ===== -->
+    <footer class="pie">
+        <div class="pie__rejilla">
+            <div class="pie__marca">
+                <a href="index.html" class="logo">LZC.</a>
+                <p>Plataforma para el transporte en combi de Lázaro Cárdenas, Michoacán. Ruta piloto: Ruta 2 «Pollo».</p>
+            </div>
+            <nav aria-label="Páginas">
+                <p class="mono-etiqueta">Páginas</p>
+                <ul class="pie__enlaces">
+                    <li><a href="index.html">Inicio</a></li>
+                    <li><a href="parada.html?id=A">Parada en vivo</a></li>
+                    <li><a href="proyecto.html">El proyecto</a></li>
+                    <li><a href="ficha-tecnica.html">Ficha técnica</a></li>
+                </ul>
+            </nav>
+            <nav aria-label="Rutas">
+                <p class="mono-etiqueta">Rutas</p>
+                <ul class="pie__enlaces">
+                    <li><a href="index.html#rutas">Ruta 2 «Pollo» · piloto</a></li>
+                    <li><a href="parada.html?id=A">Parada A en vivo</a></li>
+                    <li><a href="parada.html?id=B">Parada B en vivo</a></li>
+                    <li><a href="index.html#rutas">Próximas rutas</a></li>
+                </ul>
+            </nav>
+            <div>
+                <p class="mono-etiqueta">Datos</p>
+                <p class="pie__nota">Mapas: © colaboradores de OpenStreetMap y OpenFreeMap. Maquetas basadas en Google Street View e imagen satelital. Horario simulado.</p>
+            </div>
+        </div>
+        <div class="pie__base">
+            <span>© 2026 · Rutas LZC</span>
+            <span>Lázaro Cárdenas, Michoacán · 17.97°&nbsp;N, 102.22°&nbsp;O</span>
+        </div>
+    </footer>
+
+    <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+    <script src="ruta-2.js"></script>
+    <script src="horario.js"></script>
+    <script src="modelos-3d.js"></script>
+    <script src="casetas-3d.js"></script>
+    <script src="map.js"></script>
+    <script src="zonas-3d.js"></script>
+    <script src="visor-3d.js"></script>
+    <script src="comun.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

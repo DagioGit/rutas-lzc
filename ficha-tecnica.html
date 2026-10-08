@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ficha técnica · Rutas LZC</title>
+    <meta name="description" content="Ficha técnica de Rutas LZC, plataforma para el transporte en combi de Lázaro Cárdenas, Michoacán: ruta piloto (Ruta 2 «Pollo»), base, recorrido, paradas, caseta y metodología.">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="ficha.css">
+</head>
+
+<body>
+
+    <!-- Barra de herramientas (no se imprime) -->
+    <header class="herramientas">
+        <a href="index.html" class="herramientas__volver">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Volver al sitio
+        </a>
+        <p class="herramientas__titulo"><b>LZC.</b> Ficha técnica <span data-num-hojas>6 hojas</span></p>
+        <div class="herramientas__acciones">
+            <button type="button" class="btn btn--borde" data-imprimir>Imprimir</button>
+            <a href="docs/ficha-tecnica-ruta-2.pdf" download class="btn btn--claro">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Descargar PDF
+            </a>
+        </div>
+    </header>
+
+    <main class="documento" data-documento>
+
+        <!-- ===== HOJA 1 · PORTADA ===== -->
+        <section class="hoja hoja--portada" id="portada">
+            <div class="hoja__cabeza"><span class="marca">LZC.</span><span>Ficha técnica · Rutas LZC · Ruta 2 «Pollo»</span><span data-folio></span></div>
+            <div class="hoja__cuerpo">
+                <p class="etiqueta">Plataforma de transporte en combi · Lázaro Cárdenas, Michoacán</p>
+                <h1>Ficha técnica</h1>
+                <p class="portada__sub">Rutas LZC: paradas con caseta, contador de llegada y mapa en vivo para las combis de la ciudad. Esta ficha documenta la ruta piloto, la Ruta 2 «Pollo»: base, recorrido, paradas, caseta y metodología.</p>
+                <figure class="portada__imagen">
+                    <img src="img/parada-a-noche.jpg" alt="Maqueta 3D de la Parada A de noche">
+                    <figcaption>Maqueta 3D · Parada A, Av. Melchor Ocampo, de noche</figcaption>
+                </figure>
+                <div class="dos">
+                    <table class="tabla">
+                        <tbody>
+                            <tr><th>Proyecto</th><td>Rutas LZC · plataforma de transporte en combi</td></tr>
+                            <tr><th>Ruta piloto</th><td>Ruta 2 «Pollo»</td></tr>
+                            <tr><th>Elaboró</th><td>{Nombre del equipo} · 5 integrantes</td></tr>
+                            <tr><th>Fecha</th><td>Octubre de 2026</td></tr>
+                            <tr><th>Fase</th><td>1 de 3 · Ruta piloto</td></tr>
+                            <tr><th>Base</th><td>Calle Tamarindo, Col. Benito Juárez</td></tr>
+                        </tbody>
+                    </table>
+                    <div>
+                        <p class="etiqueta">Contenido</p>
+                        <ol class="indice" data-indice></ol>
+                    </div>
+                </div>
+            </div>
+            <div class="hoja__pie"><span>Rutas LZC · Transporte en combi · Lázaro Cárdenas, Mich.</span><span>Rev. 10/2026</span></div>
+        </section>
+
+        <!-- ===== HOJA 2 · RECORRIDO ===== -->
+        <section class="hoja" id="recorrido" data-titulo="Recorrido">
+            <div class="hoja__cabeza"><span class="marca">LZC.</span><span>Ficha técnica · Rutas LZC · Ruta 2 «Pollo»</span><span data-folio></span></div>
+            <div class="hoja__cuerpo">
+                <p class="etiqueta">01 · Recorrido</p>
+                <h2>Recorrido de la Ruta 2</h2>
+                <figure class="plano-ruta">
+                    <svg viewBox="0 0 640 380" data-plano-ruta role="img" aria-label="Plano del recorrido de la Ruta 2"></svg>
+                </figure>
+                <div class="dos">
+                    <div>
+                        <p class="etiqueta">Parámetros de operación</p>
+                        <table class="tabla">
+                            <tbody>
+                                <tr><th>Longitud de la vuelta</th><td data-largo></td></tr>
+                                <tr><th>Duración de la vuelta</th><td data-vuelta></td></tr>
+                                <tr><th>Velocidad promedio</th><td data-velocidad></td></tr>
+                                <tr><th>Frecuencia</th><td data-frecuencia></td></tr>
+                                <tr><th>Unidades necesarias</th><td data-unidades></td></tr>
+                                <tr><th>Paradas propuestas</th><td data-num-paradas></td></tr>
+                                <tr><th>Base</th><td data-base></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                        <p class="etiqueta">Tramos</p>
+                        <table class="tabla tabla--num">
+                            <thead><tr><th>De → a</th><th>Distancia</th><th>Tiempo</th></tr></thead>
+                            <tbody data-tramos></tbody>
+                        </table>
+                        <p class="etiqueta etiqueta--sep">Calles en orden</p>
+                        <p class="calles" data-calles></p>
+                    </div>
+                </div>
+                <p class="nota">Recorrido real dibujado por el equipo en Google Earth. Frecuencia y velocidad: supuestos de la simulación.</p>
+            </div>
+            <div class="hoja__pie"><span>Rutas LZC · Transporte en combi · Lázaro Cárdenas, Mich.</span><span>Rev. 10/2026</span></div>
+        </section>
+
+        <!-- ===== HOJA · BASE ===== -->
+        <section class="hoja" id="base" data-titulo="Base de la Ruta 2">
+            <div class="hoja__cabeza"><span class="marca">LZC.</span><span>Ficha técnica · Rutas LZC · Ruta 2 «Pollo»</span><span data-folio></span></div>
+            <div class="hoja__cuerpo">
+                <p class="etiqueta" data-num-seccion>Base</p>
+                <h2>Base de la Ruta 2 · <span data-b-calle></span></h2>
+                <p class="subtitulo" data-b-colonia></p>
+                <figure class="foto"><img src="img/base.jpg" alt="Maqueta 3D de la base de la Ruta 2, con combis estacionadas enfrente"><figcaption>Maqueta 3D de la base, con las combis esperando su turno sobre Calle Tamarindo</figcaption></figure>
+                <div class="dos">
+                    <div>
+                        <p class="etiqueta">Datos de la base</p>
+                        <table class="tabla"><tbody data-b-datos></tbody></table>
+                    </div>
+                    <div>
+                        <p class="etiqueta">Ubicación en el recorrido</p>
+                        <svg class="mini-ruta" viewBox="0 0 640 380" data-b-mini aria-hidden="true"></svg>
+                        <p class="etiqueta etiqueta--sep">Operación</p>
+                        <ul class="lista">
+                            <li>Las unidades esperan su turno estacionadas frente a la base</li>
+                            <li>Primera salida a las 6:00 y última a las 22:00</li>
+                            <li>Salen por Calle Tamarindo hacia el Libramiento a Sicartsa</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="hoja__pie"><span>Rutas LZC · Transporte en combi · Lázaro Cárdenas, Mich.</span><span>Rev. 10/2026</span></div>
+        </section>
+
+        <!-- Hojas de cada parada: se generan con ficha.js -->
+        <template data-plantilla-parada>
+            <section class="hoja">
+                <div class="hoja__cabeza"><span class="marca">LZC.</span><span>Ficha técnica · Rutas LZC · Ruta 2 «Pollo»</span><span data-folio></span></div>
+                <div class="hoja__cuerpo">
+                    <p class="etiqueta" data-p-etiqueta></p>
+                    <h2 data-p-titulo></h2>
+                    <p class="subtitulo" data-p-referencia></p>
+                    <figure class="foto"><img data-p-foto alt=""><figcaption data-p-pie></figcaption></figure>
+                    <div class="dos">
+                        <div>
+                            <p class="etiqueta">Datos de la parada</p>
+                            <table class="tabla"><tbody data-p-datos></tbody></table>
+                            <p class="etiqueta etiqueta--sep">Elementos de la parada</p>
+                            <ul class="lista lista--check">
+                                <li>Caseta solar sobre plataforma con franja táctil</li>
+                                <li>Contador de llegada con pantalla a dos caras</li>
+                                <li>Disco de parada «R2» en poste independiente</li>
+                                <li>Código QR a la pantalla de parada en vivo</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <p class="etiqueta">Ubicación en el recorrido</p>
+                            <svg class="mini-ruta" viewBox="0 0 640 380" data-p-mini aria-hidden="true"></svg>
+                            <p class="etiqueta etiqueta--sep">Entorno</p>
+                            <ul class="lista" data-p-entorno></ul>
+                        </div>
+                    </div>
+                    <p class="nota"><b>Observaciones:</b> <span data-p-obs></span></p>
+                </div>
+                <div class="hoja__pie"><span>Rutas LZC · Transporte en combi · Lázaro Cárdenas, Mich.</span><span>Rev. 10/2026</span></div>
+            </section>
+        </template>
+
+        <!-- ===== HOJA · CASETA ===== -->
+        <section class="hoja" id="caseta" data-titulo="Caseta y contador">
+            <div class="hoja__cabeza"><span class="marca">LZC.</span><span>Ficha técnica · Rutas LZC · Ruta 2 «Pollo»</span><span data-folio></span></div>
+            <div class="hoja__cuerpo">
+                <p class="etiqueta" data-num-seccion>Caseta</p>
+                <h2>Caseta solar y contador de llegada</h2>
+                <figure class="plano">
+                    <svg viewBox="0 0 520 300" role="img" aria-label="Alzado frontal de la caseta con el contador de llegada">
+                        <g class="pl-suelo"><line x1="20" y1="250" x2="500" y2="250"/></g>
+                        <rect class="pl-pieza" x="44" y="240" width="288" height="10"/>
+                        <rect class="pl-am" x="44" y="246" width="288" height="4"/>
+                        <rect class="pl-pieza" x="74" y="76" width="8" height="164"/>
+                        <rect class="pl-pieza" x="294" y="76" width="8" height="164"/>
+                        <polygon class="pl-techo" points="50,70 326,64 326,72 50,78"/>
+                        <line class="pl-led" x1="56" y1="80" x2="320" y2="74"/>
+                        <rect class="pl-vidrio" x="83" y="108" width="210" height="114"/>
+                        <rect class="pl-acento" x="83" y="160" width="210" height="12"/>
+                        <rect class="pl-pieza" x="110" y="200" width="144" height="5"/>
+                        <rect class="pl-pieza" x="118" y="205" width="4" height="35"/>
+                        <rect class="pl-pieza" x="242" y="205" width="4" height="35"/>
+                        <rect class="pl-pieza" x="392" y="102" width="37" height="138"/>
+                        <rect class="pl-am" x="391" y="96" width="39" height="7"/>
+                        <rect class="pl-pantalla" x="397" y="120" width="27" height="50"/>
+                        <line class="pl-fino" x1="30" y1="250" x2="30" y2="80"/>
+                        <circle class="pl-am" cx="30" cy="80" r="11"/>
+                        <g class="pl-cota">
+                            <line x1="50" y1="40" x2="326" y2="40"/><line x1="50" y1="34" x2="50" y2="46"/><line x1="326" y1="34" x2="326" y2="46"/>
+                            <text x="188" y="32">4.60</text>
+                            <line x1="352" y1="72" x2="352" y2="250"/><line x1="346" y1="72" x2="358" y2="72"/><line x1="346" y1="250" x2="358" y2="250"/>
+                            <text x="360" y="150" class="pl-vertical">2.90</text>
+                            <line x1="452" y1="96" x2="452" y2="250"/><line x1="446" y1="96" x2="458" y2="96"/><line x1="446" y1="250" x2="458" y2="250"/>
+                            <text x="460" y="162" class="pl-vertical">2.50</text>
+                        </g>
+                        <g class="pl-notas">
+                            <text x="188" y="285">CASETA SOLAR</text>
+                            <text x="411" y="285">CONTADOR</text>
+                        </g>
+                    </svg>
+                    <figcaption>Alzado frontal visto desde la calle · cotas en metros · escala aproximada 1:50</figcaption>
+                </figure>
+                <div class="dos">
+                    <div>
+                        <p class="etiqueta">Caseta</p>
+                        <table class="tabla">
+                            <tbody>
+                                <tr><th>Estructura</th><td>Marcos de acero en voladizo, acabado grafito</td></tr>
+                                <tr><th>Cubierta</th><td>Paneles fotovoltaicos, 4.60 × 2.50&nbsp;m, inclinación 6°</td></tr>
+                                <tr><th>Iluminación</th><td>Tira LED bajo el borde frontal</td></tr>
+                                <tr><th>Mobiliario</th><td>Banca de 2.40&nbsp;m con descansabrazos; respaldo de cristal esmerilado</td></tr>
+                                <tr><th>Plataforma</th><td>Concreto, 4.80 × 2.40&nbsp;m, a nivel de banqueta</td></tr>
+                                <tr><th>Accesibilidad</th><td>Franja táctil amarilla del lado de la calle</td></tr>
+                                <tr><th>Altura libre</th><td>2.90&nbsp;m</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                        <p class="etiqueta">Contador de llegada</p>
+                        <table class="tabla">
+                            <tbody>
+                                <tr><th>Tipo</th><td>Tótem con pantalla a dos caras</td></tr>
+                                <tr><th>Medidas</th><td>0.62 × 0.30 × 2.50&nbsp;m</td></tr>
+                                <tr><th>Muestra</th><td>Minutos y segundos para la próxima combi; «En parada» cuando llega</td></tr>
+                                <tr><th>Energía</th><td>Paneles de la cubierta</td></tr>
+                                <tr><th>Ubicación</th><td>3.3&nbsp;m a un lado de la caseta</td></tr>
+                            </tbody>
+                        </table>
+                        <figure class="foto foto--chica"><img src="img/parada-a-calle.jpg" alt="Caseta y contador vistos desde la calle"><figcaption>Vista a pie de calle, Parada A</figcaption></figure>
+                    </div>
+                </div>
+            </div>
+            <div class="hoja__pie"><span>Rutas LZC · Transporte en combi · Lázaro Cárdenas, Mich.</span><span>Rev. 10/2026</span></div>
+        </section>
+
+        <!-- ===== HOJA · METODOLOGÍA ===== -->
+        <section class="hoja" id="metodologia" data-titulo="Metodología y fuentes">
+            <div class="hoja__cabeza"><span class="marca">LZC.</span><span>Ficha técnica · Rutas LZC · Ruta 2 «Pollo»</span><span data-folio></span></div>
+            <div class="hoja__cuerpo">
+                <p class="etiqueta" data-num-seccion>Metodología</p>
+                <h2>Metodología y fuentes</h2>
+                <ol class="pasos">
+                    <li><b>01</b><strong>Levantamiento</strong><span>Revisión de cada esquina en Google Street View y en imagen satelital: fachadas, banquetas, camellones, mobiliario y vegetación.</span></li>
+                    <li><b>02</b><strong>Trazo del recorrido</strong><span>Recorrido real de la Ruta 2 dibujado por el equipo en Google Earth; calles y edificios de OpenStreetMap.</span></li>
+                    <li><b>03</b><strong>Modelado 3D</strong><span>Maqueta a escala de la base y de cada parada con Three.js: calles, casas, comercios, vegetación, caseta, contador, combis, peatones y tránsito.</span></li>
+                    <li><b>04</b><strong>Análisis de uso</strong><span>Día de servicio simulado (una combi cada 15 min), posición del sol, iluminación nocturna y cobertura a pie de cinco minutos (400&nbsp;m).</span></li>
+                </ol>
+                <div class="dos">
+                    <div>
+                        <p class="etiqueta">Fuentes y herramientas</p>
+                        <table class="tabla">
+                            <tbody>
+                                <tr><th>Cartografía</th><td>© colaboradores de OpenStreetMap; estilo de OpenFreeMap</td></tr>
+                                <tr><th>Recorrido</th><td>Google Earth (trazo del equipo, archivo KML)</td></tr>
+                                <tr><th>Referencia visual</th><td>Google Street View</td></tr>
+                                <tr><th>Mapa interactivo</th><td>MapLibre GL</td></tr>
+                                <tr><th>Modelado 3D</th><td>Three.js; caseta propia en Blender (.glb)</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                        <p class="etiqueta">Pendientes</p>
+                        <ul class="lista lista--pendiente">
+                            <li>Ubicar más paradas a lo largo de los 19.5 km del recorrido</li>
+                            <li>Diseño definitivo de la caseta (fase 2)</li>
+                            <li>Horario real y número de unidades</li>
+                            <li>Sumar las siguientes rutas y más paradas</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="firmas">
+                    <div><span></span><p>Elaboró<br><b>{Nombre}</b></p></div>
+                    <div><span></span><p>Revisó<br><b>{Nombre}</b></p></div>
+                    <div><span></span><p>Vo. Bo.<br><b>{Nombre}</b></p></div>
+                </div>
+            </div>
+            <div class="hoja__pie"><span>Rutas LZC · Transporte en combi · Lázaro Cárdenas, Mich.</span><span>Rev. 10/2026</span></div>
+        </section>
+    </main>
+
+    <script src="ruta-2.js"></script>
+    <script src="horario.js"></script>
+    <script src="ficha.js"></script>
+</body>
+
+</html>

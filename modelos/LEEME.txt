@@ -1,0 +1,97 @@
+Rutas LZC · Guía rápida
+======================
+
+Plataforma para el transporte en combi de Lázaro Cárdenas. Ruta piloto:
+Ruta 2 «Pollo» (ruta-2.js). El nombre "Rutas LZC" y el logo "LZC." son
+provisionales: se cambian buscando "Rutas LZC" y "LZC." en los .html.
+
+Ábranlo con un servidor local (por ejemplo la extensión "Live Server" de VS Code).
+Con doble clic sobre index.html algunas cosas no cargan.
+
+Páginas del sitio
+-----------------
+  index.html          Inicio: rutas, recorrido (mapa con el día simulado),
+                      base y paradas, caseta.
+                      "Ver mapa" abre el mapa a pantalla completa (Esc para cerrar).
+  parada.html?id=A    Pantalla de la parada en vivo: lo que se abre al escanear
+                      el QR de la caseta. Tiene "Modo pantalla" (como el tótem),
+                      aviso con voz a 2 minutos y reporte de problemas.
+  proyecto.html       Metodología, objetivos, fases y equipo (5 integrantes).
+  ficha-tecnica.html  Ficha técnica en hojas tamaño carta. "Descargar PDF" baja
+                      docs/ficha-tecnica-ruta-2.pdf; "Imprimir" genera uno nuevo
+                      con los datos actuales (elijan "Guardar como PDF").
+
+
+1) Maquetas 3D (funcionan sin internet)
+---------------------------------------
+"Ver en 3D" abre la maqueta hecha a mano de cada punto (zonas-3d.js):
+  - Base: Calle Tamarindo, Col. Benito Juárez (17.977166, -102.235471).
+    Oficina del checador con lona roja, bancas y sillas, combis en batería
+    bajo los árboles, patio, cancha llanera, baldío de enfrente, torre de
+    alta tensión y el Libramiento a Sicartsa. Una combi sale hacia el
+    Libramiento y otra regresa y se mete de reversa.
+  - Parada A (Av. Melchor Ocampo) y Parada B (Av. Belisario Domínguez).
+Casas y calles salen de OpenStreetMap; fachadas, colores, árboles y
+mobiliario de Google Street View (ago 2024) e imagen satelital.
+El visor tiene cielo con nubes, sombras y oclusión ambiental; en
+computadoras lentas la oclusión se apaga sola (o agreguen ?calidad=baja).
+
+Las imágenes de img/ son capturas de esas maquetas (base*.jpg, parada-*.jpg).
+Ya no se usan y se pueden borrar: config-3d.js, visor-real.js,
+img/parada-a-real.jpg, img/parada-b-real.jpg y modelos/*.glb.
+
+
+2) La caseta
+------------
+La página trae un diseño de referencia: la caseta Solar. Junto a ella siempre
+va el contador de llegada (el tótem que dice cuánto falta para la próxima
+combi).
+
+Para poner SU caseta:
+
+a) Probarla sin tocar código: exporten la caseta desde Blender como .glb y
+   usen "Cargar mi caseta (.glb)" en la vista 3D.
+
+b) Dejarla fija para todos: guarden el archivo aquí como  parada.glb
+   Se cargará sola como "Diseño del equipo".
+
+Para que quede bien orientada en Blender:
+   - Modelen en metros, con el piso en Z = 0.
+   - El frente (el lado que da a la calle) mirando hacia -Y (vista "Front").
+   - Archivo > Exportar > glTF 2.0 > formato "glTF Binary (.glb)".
+
+
+3) Agregar otra parada
+----------------------
+En ruta-2.js, dentro de "paradas", copien un bloque y cambien id, nombre,
+coordenadas y textos. La parada aparece sola en el mapa, en el diagrama de la
+portada, en el panel, en las fichas y en la vista 3D.
+
+
+4) Horario y simulación
+-----------------------
+horario.js: una combi cada 15 minutos (FRECUENCIA_MIN) a 18 km/h
+(VELOCIDAD_KMH). Las cuentas regresivas de la parada en vivo usan la hora real.
+
+El mapa simula un día de servicio de 6:00 a 22:00: de la base sale una combi
+cada 15 minutos y cada minuto del día dura un segundo (botones ×1, ×2, ×4 y
+pausa en el reloj del mapa). Se ajusta al inicio de la sección
+"Combi (capa 3D)" en map.js.
+
+
+5) El recorrido de la Ruta 2
+----------------------------
+ruta-2.js ("trazo"). Es el recorrido real que dibujó el equipo en Google
+Earth (unos 19.5 km por vuelta, cerca de 65 minutos a 18 km/h):
+Base (Calle Tamarindo, 17.977166, -102.235471) → Libramiento a Sicartsa →
+Av. Melchor Ocampo (Parada A) → Fidelac → Av. Autonomía Universitaria →
+Col. Ejidal → Centro → Av. Río Balsas → Av. Belisario Domínguez (Parada B)
+→ Av. Melchor Ocampo → Libramiento (retorno en Estibadores CROM) → Base.
+Para cambiarlo: dibujen la ruta en Google Earth, expórtenla como KML y
+reemplacen la lista de puntos [lng, lat] de "trazo".
+
+
+6) Sumar otra ruta
+------------------
+Copien ruta-2.js como ruta-N.js con su base, paradas y trazo. La plataforma
+está pensada para eso; por ahora las páginas muestran la Ruta 2.
