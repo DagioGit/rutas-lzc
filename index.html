@@ -32,10 +32,10 @@
         <div class="barra__interior">
             <a href="index.html" class="logo" aria-label="Rutas LZC, inicio">LZC.</a>
             <nav class="barra__nav" id="navLinks" aria-label="Secciones">
+                <a href="#caseta">Caseta</a>
                 <a href="#rutas">Rutas</a>
                 <a href="#recorrido">Recorrido</a>
                 <a href="#paradas">Paradas</a>
-                <a href="#caseta">Caseta</a>
                 <a href="proyecto.html">Proyecto</a>
                 <a href="parada.html?id=A" class="barra__vivo">En vivo</a>
             </nav>
@@ -81,7 +81,7 @@
                     </article>
                     <article class="dato">
                         <p class="mono-etiqueta">Paradas</p>
-                        <p class="dato__valor" data-num-paradas>2</p>
+                        <p class="dato__valor" data-num-paradas>9</p>
                         <ul class="dato__lista" data-lista-paradas></ul>
                     </article>
                     <article class="dato">
@@ -153,10 +153,10 @@
         <!-- ===== BARRA FLOTANTE ===== -->
         <nav class="flotante" aria-label="Accesos rápidos">
             <a href="#inicio" class="flotante__logo" aria-label="Inicio">LZC.</a>
+            <a href="#caseta" class="flotante__link">Caseta</a>
             <a href="#rutas" class="flotante__link">Rutas</a>
             <a href="#recorrido" class="flotante__link">Recorrido</a>
             <a href="#paradas" class="flotante__link">Paradas</a>
-            <a href="#caseta" class="flotante__link">Caseta</a>
             <a href="parada.html?id=A" class="flotante__link">En vivo</a>
             <a href="proyecto.html" class="flotante__link">Proyecto</a>
             <button type="button" class="flotante__boton" data-abrir-mapa>Ver mapa</button>
@@ -165,13 +165,141 @@
         <!-- ===== PROPUESTA ===== -->
         <section class="seccion seccion--intro">
             <p class="mono-etiqueta">00 — Propuesta</p>
-            <p class="declaracion">Las combis mueven a buena parte de Lázaro Cárdenas, pero esperar una es adivinar. Proponemos paradas fijas con caseta, un contador que dice cuánto falta para la próxima unidad y un mapa con las combis en camino. Empezamos con la Ruta 2 «Pollo»; la misma plataforma sirve para cualquier ruta de la ciudad.</p>
+            <p class="declaracion">Las combis mueven a buena parte de Lázaro Cárdenas, pero esperar una es adivinar, al sol o bajo la lluvia. Proponemos la Caseta LZC: sombra, energía solar, un contador que dice cuánto falta para la próxima unidad y un mapa de lo que hay cerca. Empezamos con nueve paradas de la Ruta 2 «Pollo»; la misma caseta sirve para cualquier ruta de la ciudad.</p>
+        </section>
+
+        <!-- ===== CASETA ===== -->
+        <section class="seccion" id="caseta">
+            <header class="seccion__cabeza">
+                <p class="mono-etiqueta">01 — La caseta</p>
+                <h2>Caseta LZC</h2>
+                <p>El centro del proyecto. Una caseta modular hecha para el calor y la lluvia de Lázaro Cárdenas: funciona con sus propios paneles solares, dice cuánto falta para la combi y orienta a quien llega con un mapa de los lugares importantes a pie. El mismo diseño sirve para las paradas de todas las rutas.</p>
+            </header>
+
+            <div class="caseta-heroe">
+                <figure class="caseta-heroe__foto">
+                    <img src="img/caseta-lzc.jpg" alt="Caseta LZC en la Parada A, frente al Tecnológico: techo con paneles solares, letrero con el nombre de la parada, banca de madera, cristal templado, celosía, mapa y tótem contador" width="1600" height="1000" data-caseta-foto>
+                    <div class="caseta-heroe__arriba">
+                        <span class="mono-etiqueta">Modelo 3D · SketchUp</span>
+                        <div class="caseta-heroe__tabs" role="tablist" aria-label="Hora del día">
+                            <button type="button" role="tab" aria-selected="true" data-caseta-ver="img/caseta-lzc.jpg">Día</button>
+                            <button type="button" role="tab" aria-selected="false" data-caseta-ver="img/caseta-lzc-noche.jpg">Noche</button>
+                            <button type="button" role="tab" aria-selected="false" data-caseta-ver="img/caseta-lzc-h.jpg">Parada H</button>
+                        </div>
+                    </div>
+                    <figcaption class="caseta-heroe__abajo">
+                        <p>Parada A · frente al Tecnológico</p>
+                        <button type="button" class="boton boton--claro" data-abrir-zona="A">Recorrer en 3D</button>
+                    </figcaption>
+                </figure>
+                <aside class="caseta-heroe__datos">
+                    <div class="cifra"><span class="mono-etiqueta">Costo por caseta</span><strong data-costo-caseta>$156,000</strong><small>Completa, instalada · <span data-costo-fecha>oct 2026</span></small></div>
+                    <div class="cifra"><span class="mono-etiqueta">Energía</span><strong>100&nbsp;% solar</strong><small><span data-energia-gen>4.5</span>&nbsp;kWh al día · consume <span data-energia-uso>1.2</span>&nbsp;kWh</small></div>
+                    <div class="cifra"><span class="mono-etiqueta">Autonomía sin sol</span><strong><span data-energia-dias>1.7</span>&nbsp;días</strong><small>Batería de litio de 2.56&nbsp;kWh</small></div>
+                    <div class="cifra"><span class="mono-etiqueta">Medidas</span><strong>4.9 × 2.4&nbsp;m</strong><small>Altura libre de 2.6 a 2.8&nbsp;m</small></div>
+                    <div class="cifra"><span class="mono-etiqueta">Módulos</span><strong>12</strong><small>8 básicos y 4 opcionales; cada uno con precio</small></div>
+                    <div class="caseta-heroe__acciones">
+                        <a class="boton boton--negro" href="ficha-tecnica.html#presupuesto">Presupuesto completo</a>
+                        <a class="boton boton--borde" href="modelos/caseta-lzc.glb" download>Descargar modelo 3D (.glb)</a>
+                    </div>
+                </aside>
+            </div>
+
+            <div class="modulos-cabeza">
+                <div>
+                    <p class="mono-etiqueta">Qué lleva · arma tu caseta</p>
+                    <h3>Doce módulos, cuatro opcionales</h3>
+                </div>
+                <p>Los módulos con interruptor se pueden quitar para abaratar la caseta en paradas con poca gente. Los precios son de referencia (octubre de 2026) e incluyen material, mano de obra e IVA.</p>
+            </div>
+            <ol class="modulos" data-modulos></ol>
+            <div class="calculadora" data-calculadora aria-live="polite">
+                <div><span class="mono-etiqueta">Tu caseta</span><strong data-calc-total>—</strong><small data-calc-detalle></small></div>
+                <div><span class="mono-etiqueta">Las <span data-num-paradas>9</span> paradas de la Ruta 2</span><strong data-calc-red>—</strong><small>Se puede empezar con las paradas A y H: <span data-calc-piloto>—</span></small></div>
+                <div><span class="mono-etiqueta">Operación por caseta</span><strong data-calc-operacion>—</strong><small>Al año: datos del tótem, limpieza y fondo de reposición</small></div>
+            </div>
+
+            <div class="caseta">
+                <figure class="caseta__plano">
+                    <div class="caseta__plano-cabeza">
+                        <span class="mono-etiqueta">Alzado frontal</span>
+                        <span class="mono-etiqueta mono-etiqueta--suave">Esc. aprox. 1:50 · metros</span>
+                    </div>
+                    <svg viewBox="0 0 560 310" role="img" aria-labelledby="planoTitulo">
+                        <title id="planoTitulo">Alzado frontal de la Caseta LZC con el tótem contador</title>
+                        <g class="plano__suelo"><line x1="16" y1="262" x2="544" y2="262"/></g>
+                        <rect class="plano__pieza plano__losa" x="52" y="254" width="306" height="8"/>
+                        <rect class="plano__tactil" x="52" y="259" width="306" height="3"/>
+                        <rect class="plano__acento-am" x="52" y="66" width="312" height="22"/>
+                        <rect class="plano__letrero" x="66" y="69" width="290" height="16"/>
+                        <rect class="plano__pieza" x="52" y="60" width="312" height="6"/>
+                        <rect class="plano__solar" x="60" y="52" width="146" height="7"/>
+                        <rect class="plano__solar" x="210" y="52" width="146" height="7"/>
+                        <rect class="plano__pieza" x="78" y="88" width="9" height="166"/>
+                        <rect class="plano__pieza" x="326" y="88" width="9" height="166"/>
+                        <line class="plano__led-on" x1="62" y1="90" x2="352" y2="90"/>
+                        <rect class="plano__vidrio" x="87" y="110" width="239" height="128"/>
+                        <rect class="plano__acento" x="87" y="160" width="239" height="9"/>
+                        <rect class="plano__madera" x="106" y="225" width="133" height="4"/>
+                        <rect class="plano__pieza" x="112" y="229" width="4" height="25"/>
+                        <rect class="plano__pieza" x="232" y="229" width="4" height="25"/>
+                        <rect class="plano__madera" x="252" y="205" width="70" height="5"/>
+                        <rect class="plano__isa" x="248" y="252" width="76" height="2"/>
+                        <g class="plano__celosia"><rect x="338" y="104" width="4" height="146"/><rect x="345" y="104" width="4" height="146"/><rect x="352" y="104" width="4" height="146"/></g>
+                        <rect class="plano__mapa" x="58" y="118" width="16" height="114"/>
+                        <rect class="plano__pieza" x="402" y="108" width="40" height="146"/>
+                        <rect class="plano__acento-am" x="401" y="102" width="42" height="7"/>
+                        <rect class="plano__pantalla" x="408" y="128" width="28" height="52"/>
+                        <line class="plano__fino" x1="34" y1="262" x2="34" y2="76"/>
+                        <circle class="plano__acento-am" cx="34" cy="74" r="13"/>
+                        <g class="plano__cota">
+                            <line x1="52" y1="30" x2="364" y2="30"/><line x1="52" y1="24" x2="52" y2="36"/><line x1="364" y1="24" x2="364" y2="36"/>
+                            <text x="208" y="22">4.90</text>
+                            <line x1="378" y1="88" x2="378" y2="262"/><line x1="372" y1="88" x2="384" y2="88"/><line x1="372" y1="262" x2="384" y2="262"/>
+                            <text x="386" y="180" class="plano__vertical">2.80</text>
+                            <line x1="462" y1="102" x2="462" y2="262"/><line x1="456" y1="102" x2="468" y2="102"/><line x1="456" y1="262" x2="468" y2="262"/>
+                            <text x="470" y="186" class="plano__vertical">2.50</text>
+                        </g>
+                        <g class="plano__notas">
+                            <text x="208" y="294">CASETA LZC</text>
+                            <text x="422" y="294">TÓTEM</text>
+                            <text x="34" y="294">SEÑAL</text>
+                        </g>
+                    </svg>
+                </figure>
+                <div class="caseta__texto">
+                    <dl class="ficha">
+                        <div><dt>Estructura</dt><dd>Dos columnas de PTR 4"×4" con viguetas en voladizo; cubierta inclinada hacia atrás con canalón y bajante</dd></div>
+                        <div><dt>Energía</dt><dd>2 paneles solares de 550&nbsp;W, controlador MPPT y batería de litio de 2.56&nbsp;kWh; no necesita conexión a CFE</dd></div>
+                        <div><dt>Información</dt><dd>Letrero con el nombre de la parada, tótem con la cuenta regresiva y mapa «Usted está aquí» con código QR</dd></div>
+                        <div><dt>Confort</dt><dd>Banca de madera con descansabrazos, apoyo isquiático, celosía para el sol de la tarde y carga USB</dd></div>
+                        <div><dt>Seguridad</dt><dd>Cristal templado transparente (se ve y te ven desde la calle) y luz LED que se enciende sola al oscurecer</dd></div>
+                        <div><dt>Accesibilidad</dt><dd>Plataforma a nivel de banqueta, franja táctil, espacio para silla de ruedas y aviso por voz en la parada en vivo</dd></div>
+                        <div><dt>Limpieza</dt><dd>Botes de basura separada: orgánico e inorgánico</dd></div>
+                    </dl>
+                    <div class="caseta__acciones" data-acciones-caseta></div>
+                </div>
+                <div class="caseta__fotos">
+                    <figure class="caseta__foto">
+                        <img src="img/parada-a-calle.jpg" alt="La Caseta LZC y el tótem contador vistos desde la calle, frente a la barda blanca del Tecnológico" width="1600" height="1000">
+                        <figcaption><span class="mono-etiqueta">Vista a pie de calle</span><span>Parada A, frente a la barda blanca del Tecnológico</span></figcaption>
+                    </figure>
+                    <figure class="caseta__foto caseta__foto--mapa">
+                        <img src="img/mapas/mapa-f.png" alt="Mapa Usted está aquí de la Parada F, en el centro: recorrido de la Ruta 2 y seis lugares cercanos con los minutos a pie" width="640" height="1040" data-mapa-muestra>
+                        <figcaption><span class="mono-etiqueta">Mapa de cada parada</span></figcaption>
+                    </figure>
+                    <figure class="caseta__foto">
+                        <img src="img/parada-h-calle.jpg" alt="La Caseta LZC en la Parada H, frente al estacionamiento de Plaza Las Américas" width="1600" height="1000">
+                        <figcaption><span class="mono-etiqueta">Vista a pie de calle</span><span>Parada H, frente a Plaza Las Américas</span></figcaption>
+                    </figure>
+                </div>
+            </div>
         </section>
 
         <!-- ===== RUTAS ===== -->
         <section class="seccion" id="rutas">
             <header class="seccion__cabeza">
-                <p class="mono-etiqueta">01 — Rutas</p>
+                <p class="mono-etiqueta">02 — Rutas</p>
                 <h2>Rutas</h2>
                 <p>La plataforma es para todas las rutas de combi de Lázaro Cárdenas. Empezamos con una sola, la Ruta 2 «Pollo», como ruta piloto: en ella se prueba el recorrido, las paradas, la caseta y el contador antes de sumar las demás.</p>
             </header>
@@ -187,7 +315,7 @@
                         <div><dt>Recorrido</dt><dd data-total-km>19.5&nbsp;km</dd></div>
                         <div><dt>Vuelta</dt><dd data-total-min>65&nbsp;min</dd></div>
                         <div><dt>Frecuencia</dt><dd>Cada <span data-frecuencia>15</span>&nbsp;min</dd></div>
-                        <div><dt>Paradas</dt><dd><span data-num-paradas>2</span> + base</dd></div>
+                        <div><dt>Paradas</dt><dd><span data-num-paradas>9</span> + base</dd></div>
                     </dl>
                 </article>
                 <article class="sumar-ruta">
@@ -206,7 +334,7 @@
         <!-- ===== RECORRIDO ===== -->
         <section class="seccion" id="recorrido">
             <header class="seccion__cabeza">
-                <p class="mono-etiqueta">02 — Recorrido · Ruta 2</p>
+                <p class="mono-etiqueta">03 — Recorrido · Ruta 2</p>
                 <h2>Recorrido</h2>
                 <p>Un día de servicio simulado: de la base sale una combi cada 15 minutos (en el mapa, cada minuto dura un segundo) y recorre la ruta parando en cada caseta. Elige una parada para ver cuándo llega la próxima, sigue una combi o activa la cobertura a pie.</p>
             </header>
@@ -229,7 +357,7 @@
                         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
                         Mapa a pantalla completa
                     </button>
-                    <p class="lado__nota">Recorrido real dibujado por el equipo en Google Earth. Las paradas A y B son las primeras propuestas; el horario es simulado.</p>
+                    <p class="lado__nota">Recorrido real dibujado por el equipo en Google Earth. Nueve paradas propuestas, de la A a la I; el horario es simulado.</p>
                 </aside>
 
                 <div class="recorrido__hueco" data-mapa-origen>
@@ -257,82 +385,11 @@
         <!-- ===== PARADAS ===== -->
         <section class="seccion" id="paradas">
             <header class="seccion__cabeza">
-                <p class="mono-etiqueta">03 — Paradas · Ruta 2</p>
+                <p class="mono-etiqueta">04 — Paradas · Ruta 2</p>
                 <h2>Paradas</h2>
-                <p>La base y las dos primeras paradas de la Ruta 2. Cada punto tiene su maqueta 3D hecha a partir de cómo se ve hoy la calle: casas, comercios, árboles, postes, la caseta, el contador de llegada y las combis. Se irán agregando más paradas.</p>
+                <p>Nueve paradas en los puntos que más gente mueve: el Tecnológico, clínicas y el IMSS, la CFE, el ISSSTE, la central de autobuses, el mercado y el Palacio Municipal, Soriana, Plaza Las Américas y Valle del Tecnológico. Las paradas A y H ya tienen su maqueta 3D detallada; las demás se eligieron por lo que tienen a cinco minutos a pie y falta visitarlas.</p>
             </header>
             <div class="fichas" data-hojas></div>
-        </section>
-
-        <!-- ===== CASETA ===== -->
-        <section class="seccion" id="caseta">
-            <header class="seccion__cabeza">
-                <p class="mono-etiqueta">04 — Caseta</p>
-                <h2>Caseta</h2>
-                <p>Un mismo modelo para las paradas de todas las rutas. El equipo puede sustituirlo por su propio diseño: en la vista 3D basta con cargar el archivo .glb exportado de Blender.</p>
-            </header>
-            <div class="caseta">
-                <figure class="caseta__plano">
-                    <div class="caseta__plano-cabeza">
-                        <span class="mono-etiqueta">Alzado frontal</span>
-                        <span class="mono-etiqueta mono-etiqueta--suave">Esc. aprox. 1:50 · metros</span>
-                    </div>
-                    <svg viewBox="0 0 520 300" role="img" aria-labelledby="planoTitulo">
-                        <title id="planoTitulo">Alzado frontal de la caseta con el contador de llegada</title>
-                        <g class="plano__suelo"><line x1="20" y1="250" x2="500" y2="250"/></g>
-                        <rect class="plano__pieza" x="44" y="240" width="288" height="10"/>
-                        <rect class="plano__tactil" x="44" y="246" width="288" height="4"/>
-                        <rect class="plano__pieza" x="74" y="76" width="8" height="164"/>
-                        <rect class="plano__pieza" x="294" y="76" width="8" height="164"/>
-                        <polygon class="plano__techo" points="50,70 326,64 326,72 50,78"/>
-                        <line class="plano__led" x1="56" y1="80" x2="320" y2="74"/>
-                        <rect class="plano__vidrio" x="83" y="108" width="210" height="114"/>
-                        <rect class="plano__acento" x="83" y="160" width="210" height="12"/>
-                        <rect class="plano__pieza" x="110" y="200" width="144" height="5"/>
-                        <rect class="plano__pieza" x="118" y="205" width="4" height="35"/>
-                        <rect class="plano__pieza" x="242" y="205" width="4" height="35"/>
-                        <rect class="plano__pieza" x="392" y="102" width="37" height="138"/>
-                        <rect class="plano__acento-am" x="391" y="96" width="39" height="7"/>
-                        <rect class="plano__pantalla" x="397" y="120" width="27" height="50"/>
-                        <line class="plano__fino" x1="30" y1="250" x2="30" y2="80"/>
-                        <circle class="plano__acento-am" cx="30" cy="80" r="11"/>
-                        <g class="plano__cota">
-                            <line x1="50" y1="40" x2="326" y2="40"/><line x1="50" y1="34" x2="50" y2="46"/><line x1="326" y1="34" x2="326" y2="46"/>
-                            <text x="188" y="32">4.60</text>
-                            <line x1="352" y1="72" x2="352" y2="250"/><line x1="346" y1="72" x2="358" y2="72"/><line x1="346" y1="250" x2="358" y2="250"/>
-                            <text x="360" y="150" class="plano__vertical">2.90</text>
-                            <line x1="452" y1="96" x2="452" y2="250"/><line x1="446" y1="96" x2="458" y2="96"/><line x1="446" y1="250" x2="458" y2="250"/>
-                            <text x="460" y="162" class="plano__vertical">2.50</text>
-                        </g>
-                        <g class="plano__notas">
-                            <text x="188" y="285">CASETA SOLAR</text>
-                            <text x="411" y="285">CONTADOR</text>
-                        </g>
-                    </svg>
-                </figure>
-                <div class="caseta__texto">
-                    <dl class="ficha">
-                        <div><dt>Estructura</dt><dd>Marcos de acero en voladizo, acabado grafito</dd></div>
-                        <div><dt>Cubierta</dt><dd>Paneles fotovoltaicos con tira de iluminación LED al frente</dd></div>
-                        <div><dt>Contador</dt><dd>Tótem con pantalla a ambos lados que indica cuánto falta para la próxima combi</dd></div>
-                        <div><dt>Mobiliario</dt><dd>Banca con descansabrazos y respaldo de cristal esmerilado</dd></div>
-                        <div><dt>Accesibilidad</dt><dd>Plataforma a nivel de banqueta con franja táctil del lado de la calle</dd></div>
-                        <div><dt>Señalización</dt><dd>Disco con el número de cada ruta que para ahí («R2» en la ruta piloto)</dd></div>
-                        <div><dt>Dimensiones</dt><dd>4.60 × 2.50&nbsp;m de cubierta; 2.90&nbsp;m de altura libre</dd></div>
-                    </dl>
-                    <div class="caseta__acciones" data-acciones-caseta></div>
-                </div>
-                <div class="caseta__fotos">
-                <figure class="caseta__foto">
-                    <img src="img/parada-a-calle.jpg" alt="La caseta solar y el contador de llegada vistos desde la calle, frente a la barda blanca del Tecnológico" width="1600" height="1000">
-                    <figcaption><span class="mono-etiqueta">Vista a pie de calle</span><span>Parada A, frente a la barda blanca del Tecnológico</span></figcaption>
-                </figure>
-                <figure class="caseta__foto">
-                    <img src="img/parada-b-calle.jpg" alt="La caseta solar y el contador en la Parada B, frente al estacionamiento de la plaza comercial" width="1600" height="1000">
-                    <figcaption><span class="mono-etiqueta">Vista a pie de calle</span><span>Parada B, frente a la plaza comercial</span></figcaption>
-                </figure>
-                </div>
-            </div>
         </section>
 
         <!-- ===== MÁS ===== -->
@@ -357,7 +414,7 @@
                 <a href="ficha-tecnica.html" class="explora__tarjeta">
                     <span class="mono-etiqueta">Documento</span>
                     <strong>Ficha técnica</strong>
-                    <span class="explora__desc">Hojas tamaño carta con la plataforma, el recorrido de la Ruta 2, la base, cada parada y la caseta. Descargable en PDF.</span>
+                    <span class="explora__desc">Hojas tamaño carta con la caseta, su presupuesto por módulo, el recorrido de la Ruta 2 y la red de nueve paradas. Descargable en PDF.</span>
                     <span class="explora__ir" aria-hidden="true">→</span>
                 </a>
             </div>
@@ -397,9 +454,10 @@
             <nav aria-label="Rutas">
                 <p class="mono-etiqueta">Rutas</p>
                 <ul class="pie__enlaces">
+                    <li><a href="index.html#caseta">Caseta LZC</a></li>
                     <li><a href="index.html#rutas">Ruta 2 «Pollo» · piloto</a></li>
                     <li><a href="parada.html?id=A">Parada A en vivo</a></li>
-                    <li><a href="parada.html?id=B">Parada B en vivo</a></li>
+                    <li><a href="parada.html?id=F">Parada F (Centro) en vivo</a></li>
                     <li><a href="index.html#rutas">Próximas rutas</a></li>
                 </ul>
             </nav>
@@ -417,8 +475,10 @@
     <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
     <script src="ruta-2.js"></script>
     <script src="horario.js"></script>
+    <script src="presupuesto.js"></script>
     <script src="modelos-3d.js"></script>
     <script src="casetas-3d.js"></script>
+    <script src="caseta-lzc-modelo.js"></script>
     <script src="map.js"></script>
     <script src="zonas-3d.js"></script>
     <script src="visor-3d.js"></script>

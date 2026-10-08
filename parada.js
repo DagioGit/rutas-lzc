@@ -22,9 +22,21 @@
     $("[data-coordenadas]").textContent = `${parada.lat.toFixed(6)}, ${parada.lng.toFixed(6)}`.replace("-", "−");
     const foto = $("[data-foto]");
     if (foto && parada.imagen) { foto.src = parada.imagen; foto.alt = `Maqueta 3D de la ${parada.name}`; }
+    else if (foto) { foto.src = `img/mapas/mapa-${parada.id.toLowerCase()}.png`; foto.alt = `Mapa de la ${parada.name} con los lugares cercanos`; foto.classList.add("es-mapa"); }
+    if (parada.apodo) $("[data-calle]").textContent = `${parada.apodo} · ${parada.calle}`;
 
+    // Lugares importantes a pie (los mismos del mapa «Usted está aquí» de la caseta)
+    const COLOR_TIPO = { salud: "#d64545", escuela: "#2f6fb5", compras: "#e08a1e", "trámite": "#7a4fb0", parque: "#3f9a5c", transporte: "#1d2a33" };
+    const listaCerca = $("[data-cerca]");
+    if (listaCerca) {
+        listaCerca.innerHTML = (parada.cerca || []).map((l, i) =>
+            `<li><span class="cerca-lista__num" style="--c:${COLOR_TIPO[l.tipo] || "#555"}">${i + 1}</span><span>${l.nombre}<small>${l.tipo}</small></span><b>${l.min} min</b></li>`).join("");
+        $("[data-cerca-caja]").hidden = !(parada.cerca && parada.cerca.length);
+    }
+
+    const muchas = R.paradas.length > 5;
     $("[data-tabs]").innerHTML = R.paradas.map(p =>
-        `<a href="parada.html?id=${p.id}"${p.id === parada.id ? ' aria-current="page"' : ""}>Parada ${p.corto}</a>`).join("");
+        `<a href="parada.html?id=${p.id}"${p.id === parada.id ? ' aria-current="page"' : ""} title="${p.name}${p.apodo ? " · " + p.apodo : ""}">${muchas ? p.corto : "Parada " + p.corto}</a>`).join("");
 
     // ---------- Código QR con la dirección de esta página ----------
     const cajaQR = $("[data-qr]");
@@ -39,12 +51,12 @@
 
     // ---------- Línea del recorrido con las combis ----------
     const pista = $("[data-pista]");
-    const puntos = [{ id: "base", corto: "Base", f: 0, nombre: "Base" }, ...R.paradas.map(p => ({ id: p.id, corto: p.corto, f: H.fraccion(p.id), nombre: p.name }))];
+    const puntos = [{ id: "base", corto: "Base", f: 0, nombre: "Base" }, ...R.paradas.map(p => ({ id: p.id, corto: p.corto, f: H.fraccion(p.id), nombre: p.name, apodo: p.apodo }))];
     puntos.forEach(p => {
         const el = document.createElement("div");
         el.className = "pista__punto" + (p.id === "base" ? " pista__punto--base" : "") + (p.id === parada.id ? " is-aqui" : "");
         el.style.left = `${(p.f * 100).toFixed(2)}%`;
-        el.innerHTML = `<span class="pista__marca">${p.id === "base" ? "" : p.corto}</span><span class="pista__nombre">${p.nombre}</span>${p.id === parada.id ? '<span class="pista__aqui">Estás aquí</span>' : ""}`;
+        el.innerHTML = `<span class="pista__marca">${p.id === "base" ? "" : p.corto}</span><span class="pista__nombre">${muchas && p.id !== "base" ? "" : p.nombre}</span>${p.id === parada.id ? '<span class="pista__aqui">Estás aquí</span>' : ""}`;
         pista.appendChild(el);
     });
     const fin = document.createElement("div");
@@ -79,7 +91,7 @@
     $("[data-tramos-vivo]").innerHTML = siguientes.map(p => `
         <li>
             <span class="vivo-tramos__marca${p.id === "base" ? " vivo-tramos__marca--base" : ""}">${p.id === "base" ? "" : p.corto}</span>
-            <span class="vivo-tramos__nombre"><strong>${p.id === "base" ? "Base (fin del recorrido)" : p.nombre}</strong><small>${p.id === "base" ? R.base.calle : F.calleCorta(R.paradas.find(x => x.id === p.id).calle)}</small></span>
+            <span class="vivo-tramos__nombre"><strong>${p.id === "base" ? "Base (fin del recorrido)" : `${p.nombre}${p.apodo ? " · " + p.apodo : ""}`}</strong><small>${p.id === "base" ? R.base.calle : F.calleCorta(R.paradas.find(x => x.id === p.id).calle)}</small></span>
             <span class="vivo-tramos__tiempo">${F.minutos(p.viaje)}</span>
             <span class="vivo-tramos__dist">${F.distancia(((p.f - fAqui + 1) % 1 || 1) * H.largo())}</span>
         </li>`).join("");

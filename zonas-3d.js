@@ -2409,5 +2409,5 @@
         };
     }
 
-    window.Zonas3D = { A: zonaA, B: zonaB, base: zonaBase };
+    window.Zonas3D = { A: zonaA, H: zonaB, base: zonaBase }; // zonaB es la Parada H (Plaza Las Américas)
 })();

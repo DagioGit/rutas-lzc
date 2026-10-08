@@ -27,8 +27,11 @@
         for (let i = 1; i < R.trazo.length; i++) acum.push(acum[i - 1] + dist(R.trazo[i - 1], R.trazo[i]));
         largo = acum[acum.length - 1];
         R.paradas.forEach(p => {
+            // con "km" se busca sólo cerca de esa distancia (calles que se recorren de ida y de vuelta)
+            const pista = p.km != null ? p.km * 1000 : null;
             let mejor = 0, dMin = Infinity;
             R.trazo.forEach((q, i) => {
+                if (pista != null && Math.abs(acum[i] - pista) > 450) return;
                 const d = dist(q, [p.lng, p.lat]);
                 if (d < dMin) { dMin = d; mejor = i; }
             });

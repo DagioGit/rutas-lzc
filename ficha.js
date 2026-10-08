@@ -12,6 +12,7 @@
 
     // ---------- Plano del recorrido (SVG a partir del trazo real) ----------
     function plano(svg, destacar) {
+        const conNombres = !destacar && R.paradas.length <= 4; // con muchas paradas, sólo la letra
         const W = 640, Hh = 380, m = 34;
         const k = Math.cos(18 * Math.PI / 180);
         const xs = R.trazo.map(p => p[0] * k), ys = R.trazo.map(p => p[1]);
@@ -33,7 +34,7 @@
                 ${destacar === p.id ? `<circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="20" class="pr-halo"/>` : ""}
                 <rect x="${(q[0] - 10).toFixed(1)}" y="${(q[1] - 10).toFixed(1)}" width="20" height="20" rx="5"/>
                 <text x="${q[0].toFixed(1)}" y="${(q[1] + 4).toFixed(1)}">${p.corto}</text>
-                ${!destacar ? (q[0] > W * 0.6
+                ${conNombres ? (q[0] > W * 0.6
                     ? `<text class="pr-nombre" style="text-anchor:end" x="${(q[0] - 16).toFixed(1)}" y="${(q[1] - 14).toFixed(1)}">${p.name.toUpperCase()} · ${F.calleCorta(p.calle).toUpperCase()}</text>`
                     : `<text class="pr-nombre" x="${(q[0] + 16).toFixed(1)}" y="${(q[1] - 12).toFixed(1)}">${p.name.toUpperCase()} · ${F.calleCorta(p.calle).toUpperCase()}</text>`) : ""}
             </g>`;
@@ -50,10 +51,11 @@
     }
 
     // ---------- Hojas de las paradas ----------
+    // Hoja completa sólo para las paradas con levantamiento y maqueta; las demás van en la hoja «Red de paradas».
     const plantilla = $("[data-plantilla-parada]");
-    const antesDe = $("#caseta");
+    const antesDe = $("#base");
     const orden = R.paradas.slice().sort((a, b) => H.fraccion(a.id) - H.fraccion(b.id));
-    orden.forEach(p => {
+    orden.filter(p => p.imagen && !p.propuesta).forEach(p => {
         const hoja = plantilla.content.firstElementChild.cloneNode(true);
         hoja.id = `parada-${p.id.toLowerCase()}`;
         hoja.dataset.titulo = `${p.name} · ${F.calleCorta(p.calle)}`;
@@ -62,7 +64,7 @@
         const img = $("[data-p-foto]", hoja);
         img.src = p.imagen;
         img.alt = `Maqueta 3D de la ${p.name}`;
-        $("[data-p-pie]", hoja).textContent = `Maqueta 3D de la ${p.name} con la caseta solar y el contador`;
+        $("[data-p-pie]", hoja).textContent = `Maqueta 3D de la ${p.name} con la Caseta LZC y el tótem contador`;
         const v = H.viaje("base", p.id);
         const sentido = (p.calle.split(",")[1] || "—").trim();
         $("[data-p-datos]", hoja).innerHTML = [
@@ -71,7 +73,8 @@
             ["Sentido", sentido.charAt(0).toUpperCase() + sentido.slice(1)],
             ["Referencia", p.referencia],
             ["Desde la base", `${F.distancia(H.distancia(p.id))} · ${F.minutos(v)}`],
-            ["Caseta", "Solar con contador de llegada"]
+            ["Apodo", p.apodo || "—"],
+            ["Caseta", "Caseta LZC con tótem y mapa"]
         ].map(([a, b]) => `<tr><th>${a}</th><td>${b}</td></tr>`).join("");
         $("[data-p-entorno]", hoja).innerHTML = (p.entorno || []).map(t => `<li>${t}</li>`).join("");
         $("[data-p-obs]", hoja).textContent = p.desc || "—";
@@ -116,6 +119,66 @@
     }).join("") + `<tr class="total"><th>Vuelta completa</th><td>${F.distancia(L)}</td><td>${Math.round(T / 60)} min</td></tr>`;
     $("[data-calles]").textContent = (R.calles || []).join(" → ");
 
+
+    // ---------- Presupuesto de la caseta (datos de presupuesto.js) ----------
+    const P = window.PRESUPUESTO_CASETA, Pr = window.Presupuesto;
+    if (P && Pr) {
+        const $p = Pr.pesos;
+        const num = n => Number.isInteger(n) ? String(n) : n.toLocaleString("es-MX", { maximumFractionDigits: 2 });
+        pon("[data-f-fecha]", P.fecha);
+        const completa = Pr.caseta(), basica = Pr.caseta([]);
+        pon("[data-f-costo]", `${$p(completa.total)} con todos los módulos`);
+        $$("[data-f-partidas]").forEach(tp => {
+        const [desde, hasta] = tp.dataset.fPartidas.split("-").map(Number);
+        const ultimo = hasta >= P.modulos.length;
+        tp.innerHTML = P.modulos.slice(desde, hasta).map((m, k) => { const i = desde + k; return `
+            <tr class="modulo"><th colspan="4">${String(i + 1).padStart(2, "0")} · ${m.nombre}${m.fijo ? "" : " <i>opc.</i>"}</th><td>${$p(Pr.modulo(m))}</td></tr>` +
+            m.partidas.map(p => `<tr><th>${p.concepto}${p.fuente ? "" : " <sup>†</sup>"}</th><td>${num(p.cantidad)}</td><td>${p.unidad}</td><td>${$p(p.pu)}</td><td>${$p(Pr.importe(p))}</td></tr>`).join(""); }
+        ).join("") + (ultimo ? `<tr class="total"><th colspan="4">Materiales, equipo y mano de obra (módulos 01 a ${String(P.modulos.length).padStart(2, "0")})</th><td>${$p(completa.directo)}</td></tr>` : "");
+        });
+
+        const tr = $("[data-f-resumen]");
+        if (tr) tr.innerHTML = [
+            ["Materiales, equipo y mano de obra", completa.directo],
+            ...P.indirectos.map(x => [x.concepto, x.importe]),
+            [`Imprevistos (${Math.round(P.imprevistos * 100)} %)`, completa.imprevistos]
+        ].map(([a, b]) => `<tr><th>${a}</th><td>${$p(b)}</td></tr>`).join("") +
+            `<tr class="total"><th>Caseta completa</th><td>${$p(completa.total)}</td></tr>` +
+            `<tr><th>Caseta básica (sin opcionales)</th><td>${$p(basica.total)}</td></tr>`;
+
+        const n = R.paradas.length, op = Pr.operacionAnual();
+        const trd = $("[data-f-red]");
+        if (trd) trd.innerHTML = [
+            [`${n} casetas completas`, completa.total * n],
+            [`${n} casetas básicas`, basica.total * n],
+            [`Operación de la red, por año`, op * n]
+        ].map(([a, b]) => `<tr><th>${a}</th><td>${$p(b)}</td></tr>`).join("");
+
+        const E = Pr.energia();
+        const te = $("[data-f-energia]");
+        if (te) te.innerHTML = P.energia.consumos.map(c => `<tr><th>${c.equipo}</th><td>${c.watts}</td><td>${c.horas}</td><td>${num(c.watts * c.horas)}</td></tr>`).join("") +
+            `<tr class="total"><th colspan="3">Consumo diario</th><td>${Math.round(E.consumo).toLocaleString("es-MX")}</td></tr>` +
+            `<tr><th colspan="3">Generación (${(P.energia.panelesW / 1000).toFixed(1)} kW × ${P.energia.horasSolPico} h × ${Math.round(P.energia.eficiencia * 100)} %)</th><td>${Math.round(E.generacion).toLocaleString("es-MX")}</td></tr>` +
+            `<tr><th colspan="3">Autonomía de la batería sin sol</th><td>${E.autonomia.toFixed(1)} días</td></tr>`;
+
+        const to = $("[data-f-operacion]");
+        if (to) to.innerHTML = P.operacion.map(o => `<tr><th>${o.concepto}</th><td>${$p(o.mensual * 12)}</td></tr>`).join("") +
+            `<tr class="total"><th>Total por año</th><td>${$p(op)}</td></tr>`;
+
+        const tf = $("[data-f-fuentes]");
+        if (tf) tf.innerHTML = Object.values(P.fuentes).map(f => `<li>${f.texto} · <span>${f.url.replace(/^https?:\/\/(www\.)?/, "").replace(/\?.*$/, "")}</span></li>`).join("");
+    }
+
+    // ---------- Red de paradas ----------
+    const svgRed = $("[data-plano-red]");
+    if (svgRed) plano(svgRed);
+    const trp = $("[data-f-red-paradas]");
+    if (trp) trp.innerHTML = orden.map(p => {
+        const km = p.km != null ? p.km : H.distancia(p.id) / 1000;
+        const lugares = (p.cerca || []).slice(0, 3).map(l => `${l.nombre} <i>${l.min}&nbsp;min</i>`).join(" · ");
+        return `<tr><td class="letra"><b>${p.corto}</b></td><th>${p.apodo || p.name}${p.propuesta ? "" : " <i>✓</i>"}</th><td>${F.calleCorta(p.calle)}</td><td>${km.toFixed(1)}</td><td class="lugares">${lugares}</td></tr>`;
+    }).join("");
+
     // ---------- Numeración, índice y folios ----------
     const hojas = $$(".hoja");
     const N = hojas.length;
@@ -124,8 +187,6 @@
         const etiqueta = $("[data-num-seccion], [data-p-etiqueta]", h);
         if (etiqueta) etiqueta.textContent = `${String(i).padStart(2, "0")} · ${h.dataset.titulo.split(" · ")[0]}`;
     });
-    const recorridoEtq = $("#recorrido .etiqueta");
-    if (recorridoEtq) recorridoEtq.textContent = "01 · Recorrido";
     $("[data-indice]").innerHTML = hojas.slice(1).map((h, i) =>
         `<li><a href="#${h.id}"><span>${String(i + 1).padStart(2, "0")}</span>${h.dataset.titulo}<b>${i + 2}</b></a></li>`).join("");
     pon("[data-num-hojas]", `${N} hojas · tamaño carta`);

@@ -2,8 +2,8 @@
 //
 // - Maquetas detalladas (zonas-3d.js) para las paradas que ya se modelaron a mano;
 //   para cualquier otra parada, la maqueta se genera sola con OpenStreetMap.
-// - Configurador de caseta: tres diseños (casetas-3d.js), color de acento y la
-//   opción de probar un modelo propio (.glb exportado de Blender).
+// - Configurador de caseta: la Caseta LZC (modelo de SketchUp), la versión solar
+//   básica, color de acento y la opción de probar un modelo propio (.glb).
 // - Hora del día con la posición real del sol en Lázaro Cárdenas: sombras,
 //   atardecer y noche con luminarias encendidas.
 // - Pasajeros que esperan en la caseta y suben a la combi.
@@ -52,7 +52,7 @@
     const zonas = new Map();
 
     // Configuración de la caseta (se conserva al cambiar de parada)
-    const config = { diseno: "solar", acento: null, hora: 11 };
+    const config = { diseno: "lzc", acento: null, hora: 11 };
     let modeloPropio = null;
     let nombrePropio = "Tu diseño";
     let casetaActiva = null;
@@ -224,6 +224,7 @@
                 ({ GLTFLoader } = await import("three/addons/loaders/GLTFLoader.js"));
                 await cargarPosproceso();
                 iniciarRenderer();
+                await cargarPlantillaLZC();
                 // ¿Ya existe la caseta del equipo en modelos/parada.glb?
                 const glb = await cargarCaseta(opciones.modeloParada);
                 if (glb) {
@@ -489,7 +490,10 @@
         // luminarias, letreros y pantallas
         const brillo = 0.12 + 2.6 * noche;
         if (zonaActual && zonaActual.luces) zonaActual.luces.forEach(m => { m.emissiveIntensity = brillo; });
-        if (casetaActiva) casetaActiva.luces.forEach(m => { m.emissiveIntensity = 0.35 + 2.2 * noche; });
+        if (casetaActiva) {
+            casetaActiva.luces.forEach(m => { m.emissiveIntensity = 0.35 + 2.2 * noche; });
+            if (casetaActiva.noche) casetaActiva.noche(noche);
+        }
         if (luzCaseta) luzCaseta.intensity = 40 * noche;
         if (zonaActual && zonaActual.contador) zonaActual.contador.luces.forEach(m => { m.emissiveIntensity = 0.6 + 0.9 * noche; });
     }
@@ -533,7 +537,8 @@
     async function montarCaseta() {
         if (!ui) return;
         const disenos = window.Casetas3D ? window.Casetas3D.disenos : {};
-        if (config.diseno === "propio" && !modeloPropio) config.diseno = "solar";
+        if (config.diseno === "propio" && !modeloPropio) config.diseno = "lzc";
+        if (config.diseno === "lzc" && !(window.Casetas3D && window.Casetas3D.plantillaLZC)) config.diseno = "solar";
         ui.propio.hidden = !modeloPropio;
         ui.propio.textContent = nombrePropio;
         ui.disenos.forEach(b => b.classList.toggle("is-active", b.dataset.diseno === config.diseno));
@@ -557,10 +562,10 @@
             objeto = modeloPropio.clone(true);
             casetaActiva = { luces: [], alturaLuz: 2.5, actualizar() {} };
         } else if (d) {
-            casetaActiva = d.crear(THREE, { acento });
+            casetaActiva = d.crear(THREE, { acento, parada: zonaActual.opciones.parada });
             objeto = casetaActiva.grupo;
         } else return;
-        objeto.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+        objeto.traverse(o => { if (o.isMesh) { o.castShadow = !o.material.transparent; o.receiveShadow = true; } });
         soporte.add(objeto);
         luzCaseta = new THREE.PointLight(0xfff0d0, 0, 9, 2);
         luzCaseta.position.set(0, 0, casetaActiva.alturaLuz);
@@ -813,8 +818,8 @@
 
         // ---- Ruta de la combi en este marco ----
         const ruta = prepararRuta(rutaGeo.map(marco.aLocal));
-        const dParada = distanciaMasCercana(ruta, 0, 0);
-        const sentido = dParada < ruta.largo / 2 ? +1 : -1; // A sale hacia B; B sale hacia A
+        const dParada = distanciaMasCercana(ruta, 0, 0, parada.km != null ? parada.km * 1000 : null);
+        const sentido = +1; // el trazo va en el sentido en que circulan las combis
         const pParada = puntoEn(ruta, dParada);
         const dirParada = direccionEn(ruta, dParada, sentido);
         const derecha = { x: dirParada.y, y: -dirParada.x };
@@ -1188,6 +1193,21 @@
 
     // ====================== Modelos ======================
 
+    // Caseta LZC: el .glb va embebido en caseta-lzc-modelo.js para que cargue
+    // también sin servidor (doble clic en index.html).
+    async function cargarPlantillaLZC() {
+        const C = window.Casetas3D;
+        if (!C || C.plantillaLZC || !window.CASETA_LZC_GLB || !GLTFLoader) return;
+        try {
+            const bin = Uint8Array.from(atob(window.CASETA_LZC_GLB), ch => ch.charCodeAt(0)).buffer;
+            const gltf = await new Promise((ok, mal) => new GLTFLoader().parse(bin, "", ok, mal));
+            gltf.scene.rotation.x = Math.PI / 2; // glTF (Y arriba) -> Z arriba
+            C.plantillaLZC = gltf.scene;
+        } catch (err) {
+            console.error("No se pudo leer la Caseta LZC", err);
+        }
+    }
+
     async function cargarGLB(url) {
         try {
             const { GLTFLoader } = await import("three/addons/loaders/GLTFLoader.js");
@@ -1375,6 +1395,8 @@
             vista(nombre) { irAVista(nombre, true); },
             camara(p, t) { camara.position.set(p[0], p[1], p[2]); controles.target.set(t[0], t[1], t[2]); controles.update(); },
             hayOclusion() { return !!(posproceso && posproceso.composer); },
+            // posición y giro del soporte de la caseta, para encuadrar tomas
+            caseta() { const c = zonaActual && zonaActual.caseta; return c ? [c.position.x, c.position.y, c.position.z, c.rotation.z] : null; },
             sinOclusion() { posproceso = null; }
         }
     };

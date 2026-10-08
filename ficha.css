@@ -753,3 +753,65 @@ figcaption {
         page-break-after: auto;
     }
 }
+
+/* ===== Caseta LZC y presupuesto ===== */
+.foto--alta img { aspect-ratio: 16 / 9; }
+.tres { display: grid; grid-template-columns: 1fr .55fr 1fr; gap: 12pt; margin-top: 12pt; align-items: start; }
+.tres .foto--chica { margin-top: 0; }
+.foto--mapa img { aspect-ratio: auto; height: 1.55in; width: auto; max-width: 100%; object-fit: contain; border: .5pt solid var(--linea); }
+.dos--arriba { margin-top: 8pt; align-items: start; }
+
+.pl-letrero { fill: #1B2433; }
+.pl-mapa { fill: #F4F1E6; stroke: #2E2E2E; stroke-width: 1; }
+.pl-madera { fill: #8A5A33; }
+.pl-isa { fill: #1F5BB8; }
+.pl-losa { fill: #CFCFCB; }
+
+.tabla--compacta th,
+.tabla--compacta td { padding: 2.2pt 0; font-size: 7.4pt; }
+.tabla--compacta.tabla--num tbody th { font-size: 7.4pt; padding-right: 8pt; }
+.tabla--compacta thead th { font-size: 6pt; }
+.tabla--compacta td + td { padding-left: 8pt; }
+.tabla--compacta sup { font-size: 5.5pt; color: var(--gris); }
+.tabla--num .modulo th,
+.tabla--num .modulo td {
+    padding-top: 5pt;
+    font-family: var(--f-mono);
+    font-size: 6.6pt;
+    font-weight: 500;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    border-bottom: .75pt solid var(--tinta);
+}
+.tabla--num .modulo i { font-style: normal; color: var(--gris); text-transform: lowercase; }
+.tabla--num tbody th[colspan] { text-align: left; }
+
+.tabla--red td.letra { width: 18pt; }
+.tabla--red td.letra b {
+    display: inline-grid; place-items: center;
+    width: 13pt; height: 13pt; border-radius: 3pt;
+    background: var(--amarillo); font-size: 7pt;
+}
+.tabla--red tbody th { white-space: nowrap; }
+.tabla--red tbody th i { font-style: normal; color: #2F7D5B; }
+.tabla--red td { white-space: nowrap; }
+.tabla--red td.lugares { white-space: normal; text-align: left; font-size: 6.9pt; line-height: 1.35; color: var(--gris); }
+.tabla--red td.lugares i { font-style: normal; font-family: var(--f-mono); font-size: 6pt; color: var(--gris-claro); }
+.tabla--red thead th:last-child { text-align: left; }
+.plano-ruta--chico svg { max-height: 3.4in; }
+
+.fuentes { margin: 4pt 0 0 12pt; font-size: 6.8pt; line-height: 1.45; color: var(--gris); }
+.fuentes span { font-family: var(--f-mono); font-size: 6pt; color: var(--gris-claro); word-break: break-all; }
+.foto--caseta img { aspect-ratio: 16 / 7.4; }
+.dos--portada { margin-top: 12pt; }
+.dos--portada .tabla th, .dos--portada .tabla td { padding: 3.6pt 0; }
+.hoja--portada .indice li a { padding: 3pt 0; font-size: 8.5pt; }
+.hoja--portada .portada__imagen img { aspect-ratio: 16 / 8; }
+.hoja--portada .portada__imagen img { aspect-ratio: 16 / 6.4; }
+.hoja--portada .indice li a { padding: 2.4pt 0; font-size: 8pt; }
+.foto--caseta img { aspect-ratio: 16 / 6.6; }
+#recorrido .plano-ruta svg { height: 3.1in; }
+#recorrido .dos { margin-top: 10pt; }
+.tabla--red td:nth-child(4) { padding-right: 8pt; }
+.tabla--red thead th:nth-child(4) { text-align: right; padding-right: 8pt; }
+.subtitulo sup { font-size: 70%; }

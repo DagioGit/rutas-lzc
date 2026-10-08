@@ -836,3 +836,60 @@ body.modo-pantalla {
         text-align: center;
     }
 }
+
+/* Lugares cercanos (mismos del mapa de la caseta) */
+.cerca-lista {
+    list-style: none;
+    display: grid;
+    gap: 2px;
+    margin-top: 10px;
+}
+
+.cerca-lista li {
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--linea);
+    font-size: .9rem;
+    line-height: 1.25;
+}
+
+.cerca-lista li:last-child {
+    border-bottom: 0;
+}
+
+.cerca-lista small {
+    display: block;
+    color: var(--gris);
+    font-size: .72rem;
+    text-transform: capitalize;
+}
+
+.cerca-lista b {
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+}
+
+.cerca-lista__num {
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--c);
+    color: #fff;
+    font-size: .72rem;
+    font-weight: 700;
+}
+
+.dato--foto img.es-mapa {
+    object-fit: cover;
+    object-position: top;
+}
+
+.cerca-lista--columnas {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    column-gap: 28px;
+}

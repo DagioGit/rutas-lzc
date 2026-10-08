@@ -1,4 +1,5 @@
 // Diseños de caseta para el configurador del visor 3D.
+// La principal es la Caseta LZC (modelo de SketchUp en modelos/caseta-lzc.glb).
 //
 // Sistema local de cada caseta: x = a lo largo de la calle, la calle queda del
 // lado -y, z = arriba. Metros. La plataforma mide ~4.8 × 2.4 m.
@@ -105,6 +106,262 @@
         return { grupo: k.g, luces: k.luces, alturaLuz: 2.6, actualizar() {} };
     }
 
+    // ---------- Caseta LZC: modelada en SketchUp (modelos/caseta-lzc.glb) ----------
+    // El modelo trae materiales con nombre (LZC_*); aquí se cambian por materiales
+    // con textura: letrero con el nombre de la parada, mapa «Usted está aquí» con
+    // los lugares cercanos, panel solar, piso táctil, madera, cristal y LED.
+    const TIPOS = {
+        salud: { color: "#d64545", letra: "+" },
+        escuela: { color: "#2f6fb5", letra: "E" },
+        compras: { color: "#e08a1e", letra: "$" },
+        "trámite": { color: "#7a4fb0", letra: "T" },
+        parque: { color: "#3f9a5c", letra: "P" },
+        transporte: { color: "#1d2a33", letra: "B" }
+    };
+
+    function textura(THREE, w, h, dibujar, { repetir = false, plana = true } = {}) {
+        const c = document.createElement("canvas");
+        c.width = w; c.height = h;
+        dibujar(c.getContext("2d"), w, h);
+        const t = new THREE.CanvasTexture(c);
+        t.colorSpace = THREE.SRGBColorSpace;
+        t.anisotropy = 8;
+        t.flipY = !plana; // las caras del modelo traen la v hacia abajo (convención glTF)
+        if (repetir) t.wrapS = t.wrapT = THREE.RepeatWrapping;
+        return t;
+    }
+
+    function redondo(c, x, y, w, h, r) {
+        c.beginPath();
+        c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r);
+        c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath();
+    }
+
+    // Mapa «Usted está aquí»: recorrido, paradas vecinas y lugares a pie.
+    function dibujarMapa(c, w, h, parada) {
+        const R = window.RUTA_2;
+        c.fillStyle = "#f3f1ea"; c.fillRect(0, 0, w, h);
+        // encabezado
+        c.fillStyle = "#1d2a33"; c.fillRect(0, 0, w, 150);
+        c.fillStyle = "#f2c200"; c.fillRect(28, 30, 92, 92);
+        c.fillStyle = "#1d2a33"; c.font = "bold 40px Arial"; c.textAlign = "center"; c.textBaseline = "middle";
+        c.fillText("LZC.", 74, 78);
+        c.textAlign = "left"; c.fillStyle = "#ffffff"; c.font = "bold 46px Arial";
+        c.fillText("Usted está aquí", 142, 62);
+        c.fillStyle = "#f2c200";
+        const sub = parada ? `${parada.name}${parada.apodo ? " · " + parada.apodo : ""}` : "Ruta 2";
+        let tam = 28;
+        do { c.font = `bold ${tam}px Arial`; tam -= 1; } while (c.measureText(sub).width > w - 166 && tam > 14);
+        c.fillText(sub, 142, 106);
+        if (!parada || !R) return;
+
+        // mapa
+        const x0 = 24, y0 = 170, mw = w - 48, mh = 470;
+        c.save();
+        redondo(c, x0, y0, mw, mh, 18); c.fillStyle = "#ffffff"; c.fill(); c.clip();
+        const RADIO = 620; // metros visibles desde la parada
+        const esc = (mw / 2) / RADIO;
+        const cx = x0 + mw / 2, cy = y0 + mh / 2;
+        const pr = (lng, lat) => [cx + (lng - parada.lng) * 105900 * esc, cy - (lat - parada.lat) * 110570 * esc];
+        // cuadrícula de manzanas
+        c.strokeStyle = "#ece8de"; c.lineWidth = 1;
+        for (let x = x0; x < x0 + mw; x += 26) { c.beginPath(); c.moveTo(x, y0); c.lineTo(x, y0 + mh); c.stroke(); }
+        for (let y = y0; y < y0 + mh; y += 26) { c.beginPath(); c.moveTo(x0, y); c.lineTo(x0 + mw, y); c.stroke(); }
+        // radio de 5 minutos a pie (400 m)
+        c.setLineDash([10, 8]); c.strokeStyle = "#9fb2bd"; c.lineWidth = 3;
+        c.beginPath(); c.arc(cx, cy, 400 * esc, 0, Math.PI * 2); c.stroke(); c.setLineDash([]);
+        c.fillStyle = "#7d909b"; c.font = "18px Arial"; c.textAlign = "center";
+        c.fillText("5 min a pie", cx, cy - 400 * esc - 8);
+        // recorrido
+        const linea = () => { c.beginPath(); R.trazo.forEach((p, i) => { const q = pr(p[0], p[1]); i ? c.lineTo(q[0], q[1]) : c.moveTo(q[0], q[1]); }); };
+        c.lineJoin = c.lineCap = "round";
+        linea(); c.strokeStyle = "#1d2a33"; c.lineWidth = 16; c.stroke();
+        linea(); c.strokeStyle = "#f2c200"; c.lineWidth = 9; c.stroke();
+        // otras paradas
+        R.paradas.forEach(p => {
+            if (p.id === parada.id) return;
+            const q = pr(p.lng, p.lat);
+            if (q[0] < x0 || q[0] > x0 + mw || q[1] < y0 || q[1] > y0 + mh) return;
+            c.fillStyle = "#1d2a33"; redondo(c, q[0] - 16, q[1] - 16, 32, 32, 7); c.fill();
+            c.fillStyle = "#f2c200"; c.font = "bold 20px Arial"; c.textAlign = "center"; c.textBaseline = "middle"; c.fillText(p.corto, q[0], q[1] + 1);
+        });
+        // lugares
+        (parada.cerca || []).forEach((l, i) => {
+            const q = pr(l.lng, l.lat);
+            const t = TIPOS[l.tipo] || TIPOS.transporte;
+            c.fillStyle = "#ffffff"; c.beginPath(); c.arc(q[0], q[1], 19, 0, Math.PI * 2); c.fill();
+            c.fillStyle = t.color; c.beginPath(); c.arc(q[0], q[1], 16, 0, Math.PI * 2); c.fill();
+            c.fillStyle = "#ffffff"; c.font = "bold 19px Arial"; c.textAlign = "center"; c.textBaseline = "middle"; c.fillText(String(i + 1), q[0], q[1] + 1);
+        });
+        // usted está aquí
+        c.fillStyle = "rgba(214,69,69,.18)"; c.beginPath(); c.arc(cx, cy, 34, 0, Math.PI * 2); c.fill();
+        c.fillStyle = "#d64545"; c.beginPath(); c.arc(cx, cy, 15, 0, Math.PI * 2); c.fill();
+        c.strokeStyle = "#ffffff"; c.lineWidth = 5; c.stroke();
+        c.restore();
+        // norte
+        c.fillStyle = "#1d2a33"; c.beginPath(); c.moveTo(x0 + mw - 34, y0 + 22); c.lineTo(x0 + mw - 24, y0 + 50); c.lineTo(x0 + mw - 44, y0 + 50); c.fill();
+        c.font = "bold 18px Arial"; c.textAlign = "center"; c.fillText("N", x0 + mw - 34, y0 + 68);
+
+        // lista de lugares
+        let y = 674;
+        c.textAlign = "left"; c.textBaseline = "middle";
+        c.fillStyle = "#1d2a33"; c.font = "bold 26px Arial"; c.fillText("Cerca de esta parada", 28, y); y += 42;
+        (parada.cerca || []).slice(0, 6).forEach((l, i) => {
+            const t = TIPOS[l.tipo] || TIPOS.transporte;
+            c.fillStyle = t.color; c.beginPath(); c.arc(44, y, 16, 0, Math.PI * 2); c.fill();
+            c.fillStyle = "#fff"; c.font = "bold 18px Arial"; c.textAlign = "center"; c.fillText(String(i + 1), 44, y + 1);
+            c.textAlign = "left"; c.fillStyle = "#1d2a33"; c.font = "23px Arial";
+            const nombre = l.nombre.length > 34 ? l.nombre.slice(0, 33) + "…" : l.nombre;
+            c.fillText(nombre, 72, y);
+            c.textAlign = "right"; c.fillStyle = "#5f717b"; c.font = "bold 22px Arial"; c.fillText(`${l.min} min`, w - 30, y);
+            c.textAlign = "left";
+            y += 38;
+        });
+        // pie: ruta y código QR
+        c.fillStyle = "#1d2a33"; c.fillRect(0, h - 92, w, 92);
+        c.fillStyle = "#f2c200"; c.beginPath(); c.arc(56, h - 46, 26, 0, Math.PI * 2); c.fill();
+        c.fillStyle = "#1d2a33"; c.font = "bold 30px Arial"; c.textAlign = "center"; c.fillText("2", 56, h - 44);
+        c.textAlign = "left"; c.fillStyle = "#fff"; c.font = "bold 24px Arial"; c.fillText("Ruta 2 «Pollo»", 96, h - 60);
+        c.fillStyle = "#b7c3ca"; c.font = "19px Arial"; c.fillText("Escanea para ver la próxima combi", 96, h - 30);
+        // patrón del código QR (ilustrativo)
+        const qx = w - 82, qy = h - 84, cel = 76 / 21;
+        c.fillStyle = "#fff"; c.fillRect(qx - 4, qy - 4, 84, 84);
+        c.fillStyle = "#1d2a33";
+        let semilla = parada.id.charCodeAt(0) * 7919;
+        const azar = () => { semilla = (semilla * 16807) % 2147483647; return semilla / 2147483647; };
+        for (let i = 0; i < 21; i++) for (let j = 0; j < 21; j++) {
+            const esquina = (i < 7 && j < 7) || (i > 13 && j < 7) || (i < 7 && j > 13);
+            if (esquina) {
+                const a = i % 14, b = j % 14;
+                const anillo = Math.max(Math.abs(a - 3), Math.abs(b - 3));
+                if (anillo !== 2 && anillo <= 3) c.fillRect(qx + i * cel, qy + j * cel, cel + 0.3, cel + 0.3);
+            } else if (azar() > 0.52) c.fillRect(qx + i * cel, qy + j * cel, cel + 0.3, cel + 0.3);
+        }
+    }
+
+    function dibujarLetrero(c, w, h, parada) {
+        c.fillStyle = "#1d2a33"; c.fillRect(0, 0, w, h);
+        c.fillStyle = "#f2c200"; c.fillRect(0, 0, 210, h);
+        c.fillStyle = "#1d2a33"; c.font = "bold 76px Arial"; c.textAlign = "center"; c.textBaseline = "middle";
+        c.fillText("LZC.", 105, h / 2 + 4);
+        c.textAlign = "left"; c.fillStyle = "#ffffff"; c.font = "bold 74px Arial";
+        const titulo = parada ? parada.name.toUpperCase() : "PARADA";
+        c.fillText(titulo, 250, h / 2 + 4);
+        const ancho = c.measureText(titulo).width;
+        if (parada && parada.apodo) {
+            c.fillStyle = "#b7c3ca"; c.font = "60px Arial";
+            c.fillText("·  " + parada.apodo, 250 + ancho + 30, h / 2 + 4);
+        }
+        c.fillStyle = "#f2c200"; c.beginPath(); c.arc(w - 330, h / 2, 48, 0, Math.PI * 2); c.fill();
+        c.fillStyle = "#1d2a33"; c.font = "bold 62px Arial"; c.textAlign = "center"; c.fillText("2", w - 330, h / 2 + 4);
+        c.textAlign = "left"; c.fillStyle = "#ffffff"; c.font = "bold 44px Arial"; c.fillText("Ruta 2", w - 266, h / 2 - 18);
+        c.fillStyle = "#b7c3ca"; c.font = "36px Arial"; c.fillText("Pollo", w - 266, h / 2 + 30);
+    }
+
+    const cacheTexturas = {};
+    function texturasFijas(THREE) {
+        if (cacheTexturas.listo) return cacheTexturas;
+        cacheTexturas.tactil = textura(THREE, 1536, 128, (c, w, h) => {
+            c.fillStyle = "#f2c200"; c.fillRect(0, 0, w, h);
+            c.fillStyle = "#d4a800";
+            for (let x = 8; x < w; x += 16) for (let y = 8; y < h; y += 16) { c.beginPath(); c.arc(x, y, 4.5, 0, Math.PI * 2); c.fill(); }
+        });
+        cacheTexturas.panel = textura(THREE, 1024, 512, (c, w, h) => {
+            c.fillStyle = "#d9dde0"; c.fillRect(0, 0, w, h);
+            const cols = 24, filas = 6, m = 10, cw = (w - 2 * m) / cols, ch = (h - 2 * m) / filas;
+            for (let i = 0; i < cols; i++) for (let j = 0; j < filas; j++) {
+                const g = c.createLinearGradient(0, m + j * ch, 0, m + (j + 1) * ch);
+                g.addColorStop(0, "#1f355c"); g.addColorStop(1, "#15274a");
+                c.fillStyle = g; c.fillRect(m + i * cw + 1.5, m + j * ch + 1.5, cw - 3, ch - 3);
+                c.strokeStyle = "rgba(170,195,230,.35)"; c.lineWidth = 1;
+                for (let s = 1; s < 5; s++) { c.beginPath(); c.moveTo(m + i * cw + 1.5, m + j * ch + ch * s / 5); c.lineTo(m + (i + 1) * cw - 1.5, m + j * ch + ch * s / 5); c.stroke(); }
+            }
+            c.fillStyle = "#c9ced3"; c.fillRect(w / 2 - 2, 0, 4, h);
+        });
+        cacheTexturas.madera = textura(THREE, 512, 512, (c, w, h) => {
+            c.fillStyle = "#9b6438"; c.fillRect(0, 0, w, h);
+            for (let i = 0; i < 140; i++) {
+                const y = Math.random() * h, a = 0.05 + Math.random() * 0.12;
+                c.strokeStyle = Math.random() > 0.5 ? `rgba(60,30,10,${a})` : `rgba(210,150,100,${a})`;
+                c.lineWidth = 1 + Math.random() * 3;
+                c.beginPath(); c.moveTo(0, y);
+                for (let x = 0; x <= w; x += 32) c.lineTo(x, y + Math.sin(x / 70 + i) * 4);
+                c.stroke();
+            }
+        }, { repetir: true });
+        cacheTexturas.madera.repeat.set(0.9, 0.9);
+        cacheTexturas.concreto = textura(THREE, 256, 256, (c, w, h) => {
+            c.fillStyle = "#c9c4ba"; c.fillRect(0, 0, w, h);
+            for (let i = 0; i < 2600; i++) { c.fillStyle = `rgba(${Math.random() > 0.5 ? "255,255,255" : "70,60,50"},${Math.random() * 0.1})`; c.fillRect(Math.random() * w, Math.random() * h, 2, 2); }
+        }, { repetir: true });
+        cacheTexturas.isa = textura(THREE, 256, 256, (c, w, h) => {
+            c.fillStyle = "#1f5caa"; c.fillRect(0, 0, w, h);
+            c.strokeStyle = "#ffffff"; c.fillStyle = "#ffffff"; c.lineWidth = 14; c.lineCap = "round";
+            c.beginPath(); c.arc(118, 64, 16, 0, Math.PI * 2); c.fill();
+            c.beginPath(); c.moveTo(112, 92); c.lineTo(112, 150); c.lineTo(160, 150); c.lineTo(178, 196); c.stroke();
+            c.beginPath(); c.moveTo(112, 118); c.lineTo(150, 118); c.stroke();
+            c.lineWidth = 10; c.beginPath(); c.arc(112, 168, 42, Math.PI * 0.15, Math.PI * 1.3); c.stroke();
+        });
+        cacheTexturas.usb = textura(THREE, 256, 180, (c, w, h) => {
+            c.fillStyle = "#1a1f24"; c.fillRect(0, 0, w, h);
+            c.fillStyle = "#f2c200"; c.font = "bold 34px Arial"; c.textAlign = "center"; c.fillText("CARGA USB", w / 2, 46);
+            [w / 2 - 50, w / 2 + 50].forEach(x => { c.fillStyle = "#0a0c0e"; redondo(c, x - 30, 80, 60, 26, 5); c.fill(); c.fillStyle = "#59636b"; c.fillRect(x - 20, 88, 40, 10); });
+            c.fillStyle = "#8fa3ae"; c.font = "22px Arial"; c.fillText("energía solar", w / 2, 150);
+        });
+        cacheTexturas.disco = textura(THREE, 256, 256, (c, w, h) => {
+            c.fillStyle = "#1d2a33"; c.fillRect(0, 0, w, h);
+            c.fillStyle = "#f2c200"; c.beginPath(); c.arc(w / 2, h / 2, w / 2 - 14, 0, Math.PI * 2); c.fill();
+            c.fillStyle = "#1d2a33"; c.font = "bold 96px Arial"; c.textAlign = "center"; c.textBaseline = "middle"; c.fillText("R2", w / 2, h / 2 + 4);
+        });
+        cacheTexturas.listo = true;
+        return cacheTexturas;
+    }
+
+    function lzc(THREE, { acento, parada }) {
+        const plantilla = window.Casetas3D.plantillaLZC;
+        if (!plantilla) return solar(THREE, { acento });
+        const T = texturasFijas(THREE);
+        const color = ACENTOS[acento] || ACENTOS.amarillo;
+        const std = (o) => new THREE.MeshStandardMaterial({ roughness: 0.6, metalness: 0.05, side: THREE.DoubleSide, ...o });
+        const luces = [];
+        const letrero = textura(THREE, 2048, 142, (c, w, h) => dibujarLetrero(c, w, h, parada));
+        const mapa = textura(THREE, 640, 1040, (c, w, h) => dibujarMapa(c, w, h, parada));
+        const MATS = {
+            LZC_Concreto: std({ color: 0xffffff, map: T.concreto, roughness: 0.95 }),
+            LZC_Tactil: std({ color: 0xffffff, map: T.tactil, roughness: 0.8 }),
+            LZC_Grafito: std({ color: 0x2b3237, metalness: 0.55, roughness: 0.38 }),
+            LZC_Acento: std({ color, roughness: 0.45, metalness: 0.2 }),
+            LZC_Cristal: new THREE.MeshStandardMaterial({ color: 0xdcecf2, transparent: true, opacity: 0.26, roughness: 0.04, metalness: 0.1, depthWrite: false, side: THREE.DoubleSide }),
+            LZC_Plafon: std({ color: 0xe6e7e4, roughness: 0.7 }),
+            LZC_Madera: std({ color: 0xffffff, map: T.madera, roughness: 0.75 }),
+            LZC_Panel_Solar: std({ color: 0xffffff, map: T.panel, metalness: 0.45, roughness: 0.22 }),
+            LZC_Aluminio: std({ color: 0xc4cacf, metalness: 0.8, roughness: 0.3 }),
+            LZC_LED: std({ color: 0xffffff, emissive: 0xfff4dc, emissiveIntensity: 0.15 }),
+            LZC_Mapa: std({ color: 0xffffff, map: mapa, emissive: 0xffffff, emissiveMap: mapa, emissiveIntensity: 0.1, roughness: 0.35 }),
+            LZC_Letrero: std({ color: 0xffffff, map: letrero, emissive: 0xffffff, emissiveMap: letrero, emissiveIntensity: 0.1, roughness: 0.4 }),
+            LZC_ISA: std({ color: 0xffffff, map: T.isa, roughness: 0.8 }),
+            LZC_USB: std({ color: 0xffffff, map: T.usb, emissive: 0xffffff, emissiveMap: T.usb, emissiveIntensity: 0.1 }),
+            LZC_Disco: std({ color: 0xffffff, map: T.disco, roughness: 0.4 })
+        };
+        // de noche: la tira LED brilla fuerte; mapa y letrero, retroiluminados más suaves
+        luces.push(MATS.LZC_LED);
+        const suaves = [MATS.LZC_Mapa, MATS.LZC_Letrero, MATS.LZC_USB];
+        const grupo = plantilla.clone(true);
+        grupo.traverse(o => {
+            if (!o.isMesh) return;
+            const nuevo = MATS[o.material.name];
+            if (nuevo) o.material = nuevo;
+            if (o.material === MATS.LZC_Cristal) { o.castShadow = false; o.renderOrder = 2; }
+        });
+        const g = new THREE.Group();
+        g.add(grupo);
+        return {
+            grupo: g, luces, alturaLuz: 2.55,
+            noche(n) { suaves.forEach(m => { m.emissiveIntensity = 0.08 + 0.75 * n; }); },
+            actualizar() {}
+        };
+    }
+
     // ---------- Contador de llegada (tótem junto a la parada) ----------
     // Independiente del diseño de la caseta: se queda aunque cambien la caseta.
     function contador(THREE) {
@@ -155,7 +412,7 @@
             x.fillText("lateral derecha", 18, enParada ? 316 : 999);
             x.fillStyle = "#24343d"; x.fillRect(18, 350, w - 36, 2);
             x.fillStyle = "#c9d4da"; x.font = "19px Arial";
-            x.fillText("Base · A · B · Base", 18, 392);
+            x.fillText("Base → Centro → Base", 18, 392);
             tex.needsUpdate = true;
         }
         dibujar(null, false);
@@ -165,8 +422,12 @@
     window.Casetas3D = {
         acentos: ACENTOS,
         disenos: {
-            solar: { nombre: "Solar", desc: "Techo fotovoltaico, iluminación LED, banca con respaldo de cristal y franja táctil.", crear: solar, acento: "verde" }
+            lzc: { nombre: "Caseta LZC", desc: "Modelada en SketchUp: techo con 2 paneles solares, cristal templado, celosía de madera, banca y apoyo isquiático, mapa «Usted está aquí», carga USB, espacio para silla de ruedas y botes de basura separada.", crear: lzc, acento: "amarillo" },
+            solar: { nombre: "Solar básica", desc: "Versión sencilla: techo fotovoltaico, tira LED, banca con respaldo de cristal y franja táctil.", crear: solar, acento: "verde" }
         },
+        plantillaLZC: null, // la llena el visor al leer modelos/caseta-lzc (caseta-lzc-modelo.js)
+        dibujarMapa,
+        dibujarLetrero,
         crearContador: contador
     };
 })();

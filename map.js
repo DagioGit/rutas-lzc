@@ -46,7 +46,7 @@ async function iniciarMapa() {
     // Paradas en orden del recorrido, con su distancia sobre la ruta.
     const puntos = [R.base, ...R.paradas].map(p => {
         const local = marco.aLocal(p);
-        return { ...p, d: p.id === "base" ? 0 : distanciaMasCercana(ruta, local.x, local.y) };
+        return { ...p, d: p.id === "base" ? 0 : distanciaMasCercana(ruta, local.x, local.y, p.km != null ? p.km * 1000 : null) };
     });
     const porId = Object.fromEntries(puntos.map(p => [p.id, p]));
     const orden = puntos.slice().sort((a, b) => a.d - b.d);
@@ -569,9 +569,11 @@ function puntoEn(ruta, d) {
     return { x: puntos[lo].x + (puntos[hi].x - puntos[lo].x) * u, y: puntos[lo].y + (puntos[hi].y - puntos[lo].y) * u };
 }
 
-function distanciaMasCercana(ruta, x, y) {
+// pista (opcional): distancia aproximada sobre el recorrido; sólo se buscan tramos cercanos a ella.
+function distanciaMasCercana(ruta, x, y, pista = null) {
     let mejor = { d: 0, dist: Infinity };
     for (let i = 1; i < ruta.puntos.length; i++) {
+        if (pista != null && (ruta.acum[i] < pista - 450 || ruta.acum[i - 1] > pista + 450)) continue;
         const a = ruta.puntos[i - 1], b = ruta.puntos[i];
         const dx = b.x - a.x, dy = b.y - a.y;
         const l2 = dx * dx + dy * dy || 1;

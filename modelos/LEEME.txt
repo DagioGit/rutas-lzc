@@ -43,11 +43,18 @@ img/parada-a-real.jpg, img/parada-b-real.jpg y modelos/*.glb.
 
 2) La caseta
 ------------
-La página trae un diseño de referencia: la caseta Solar. Junto a ella siempre
-va el contador de llegada (el tótem que dice cuánto falta para la próxima
-combi).
+La Caseta LZC se modeló en SketchUp (modelos/caseta-lzc.glb; vista previa en
+img/caseta-lzc-sketchup.png). Mide 4.90 × 2.40 m, con techo solar, respaldo de
+cristal, banca, celosía, mapa «Usted está aquí», carga USB y botes. Junto a
+ella va el tótem contador de llegada.
 
-Para poner SU caseta:
+  - Para cambiar el modelo: edítenlo en SketchUp, expórtenlo como .glb a
+    modelos/caseta-lzc.glb y corran  python3 herramientas/glb_a_js.py
+  - Presupuesto: presupuesto.js (precio unitario "pu" y "cantidad" de cada
+    partida). La calculadora de la portada y las hojas de presupuesto de la
+    ficha técnica se recalculan solas.
+
+Para probar OTRA caseta:
 
 a) Probarla sin tocar código: exporten la caseta desde Blender como .glb y
    usen "Cargar mi caseta (.glb)" en la vista 3D.
@@ -63,8 +70,10 @@ Para que quede bien orientada en Blender:
 
 3) Agregar otra parada
 ----------------------
-En ruta-2.js, dentro de "paradas", copien un bloque y cambien id, nombre,
-coordenadas y textos. La parada aparece sola en el mapa, en el diagrama de la
+Hay nueve paradas (A a I). A y H tienen levantamiento y maqueta detallada; las
+demás son propuestas (propuesta: true) con su lista de lugares cercanos
+("cerca") y su mapa en img/mapas/. En ruta-2.js, dentro de "paradas", copien un
+bloque y cambien id, nombre, coordenadas, "km" y textos. La parada aparece sola en el mapa, en el diagrama de la
 portada, en el panel, en las fichas y en la vista 3D.
 
 

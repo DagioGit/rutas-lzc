@@ -2,9 +2,9 @@
 // Primera ruta de la plataforma de combis de Lázaro Cárdenas.
 // Base: Calle Tamarindo, Col. Benito Juárez (ubicación confirmada).
 // RECORRIDO REAL (dibujado por el equipo en Google Earth, oct 2026):
-// Base → Libramiento a Sicartsa → Av. Melchor Ocampo (Parada A, Tec) →
+// Base → Libramiento a Sicartsa → Av. Melchor Ocampo (Parada A, Tec; Parada B) →
 // Fidelac → Av. Autonomía Universitaria → Col. Ejidal → Centro → regreso por
-// Av. Río Balsas y Av. Belisario Domínguez (Parada B) → Av. Melchor Ocampo →
+// Av. Río Balsas y Av. Belisario Domínguez (Parada H) → Av. Melchor Ocampo (Parada I) →
 // Libramiento → Base. Unos 19.5 km por vuelta.
 // "trazo" es la lista de [lng, lat] en orden; para corregirla se reemplaza completa.
 
@@ -24,45 +24,218 @@ window.RUTA_2 = {
         desc: "Punto de salida y regreso de las unidades.",
         imagen: "img/base.jpg"
     },
-    // Para agregar otra parada: copia un bloque, cambia id, nombre y coordenadas.
-    // La parada se acomoda sola en su lugar del recorrido. Si no tiene maqueta
-    // hecha a mano en zonas-3d.js, el visor 3D genera una automática con OpenStreetMap.
-    paradas: [{
+    // Para agregar otra parada: copia un bloque, cambia id, nombre, km y coordenadas.
+    // "km" es la distancia sobre el recorrido desde la base (la da la tabla de la ficha técnica).
+    // "cerca" son los lugares importantes a pie; salen en el mapa de la caseta.
+    // Si no tiene maqueta hecha a mano en zonas-3d.js, el visor 3D genera una con OpenStreetMap.
+    paradas: [
+        {
             id: "A",
             name: "Parada A",
             corto: "A",
+            apodo: "Tecnológico",
+            km: 0.61, // distancia sobre el recorrido desde la base (ayuda cuando una calle se recorre de ida y de vuelta)
             lat: 17.973962,
             lng: -102.232731,
             calle: "Av. Melchor Ocampo, carril hacia el oriente",
             referencia: "Frente a la barda blanca del Instituto Tecnológico, junto a su entrada lateral",
             texto: "Sobre la plancha de concreto pegada a la barda blanca del Tecnológico, entre la ciclovía y la entrada lateral. A unos pasos empieza la barda de piedra; enfrente hay locales y comercios de la colonia.",
-            desc: "{Descripción breve de la parada A.}",
+            desc: "Primera parada después de la base y la que más estudiantes atiende: entrada lateral del Tecnológico y dos bachilleratos a cinco minutos.",
             imagen: "img/parada-a.jpg",
+            propuesta: false, // true: ubicación elegida en gabinete, falta visitarla
             entorno: [
                 "Plancha de concreto pegada a la barda blanca del Tecnológico",
                 "Entrada lateral del Tec a 15 m al poniente",
                 "Barda de piedra a partir de 14 m al oriente; entrada principal a 90 m",
                 "Ciclovía con guarnición amarilla entre la calle y la banqueta",
                 "Carril de estacionamiento y camellón con árboles jóvenes"
+            ],
+            cerca: [
+                { nombre: "Instituto Tecnológico (entrada lateral)", tipo: "escuela", min: 1, lat: 17.9737, lng: -102.233 },
+                { nombre: "Bachillerato Belisario Domínguez", tipo: "escuela", min: 5, lat: 17.974343, lng: -102.229979 },
+                { nombre: "Instituto Tecnológico (edificios)", tipo: "escuela", min: 6, lat: 17.971014, lng: -102.232728 }
             ]
         },
         {
             id: "B",
             name: "Parada B",
             corto: "B",
-            lat: 17.976330,
+            apodo: "Clínica Fátima",
+            km: 2.3, // distancia sobre el recorrido desde la base (ayuda cuando una calle se recorre de ida y de vuelta)
+            lat: 17.971609,
+            lng: -102.22358,
+            calle: "Av. Melchor Ocampo, carril hacia el sureste",
+            referencia: "Junto a la Clínica Fátima; la Unidad de Medicina Familiar 78 del IMSS a cuatro minutos",
+            texto: "Tramo de Av. Melchor Ocampo con clínicas, laboratorios y farmacias. La caseta da sombra a quien sale de consulta y a los adultos mayores de la Casa del Anciano.",
+            desc: "Zona de salud: clínica, IMSS UMF 78, centro médico y laboratorios en menos de ocho minutos a pie.",
+            propuesta: true, // true: ubicación elegida en gabinete, falta visitarla
+            cerca: [
+                { nombre: "Clínica Fátima", tipo: "salud", min: 1, lat: 17.97189, lng: -102.223494 },
+                { nombre: "IMSS UMF 78", tipo: "salud", min: 4, lat: 17.973626, lng: -102.224592 },
+                { nombre: "Secundaria Técnica 131", tipo: "escuela", min: 5, lat: 17.969422, lng: -102.224515 },
+                { nombre: "Casa del Anciano", tipo: "salud", min: 6, lat: 17.974089, lng: -102.221504 },
+                { nombre: "Plaza comercial Melchor Ocampo", tipo: "compras", min: 6, lat: 17.968859, lng: -102.221741 },
+                { nombre: "Centro Médico Santa Clara", tipo: "salud", min: 7, lat: 17.975155, lng: -102.224437 }
+            ]
+        },
+        {
+            id: "C",
+            name: "Parada C",
+            corto: "C",
+            apodo: "CFE",
+            km: 5.4, // distancia sobre el recorrido desde la base (ayuda cuando una calle se recorre de ida y de vuelta)
+            lat: 17.968166,
+            lng: -102.209344,
+            calle: "Av. Autonomía Universitaria, carril hacia el oriente",
+            referencia: "Frente a la oficina de atención y pago de CFE",
+            texto: "Sobre Av. Autonomía Universitaria, en el 2.º sector de Fidelac. Mucha gente viene a pagar la luz y hay tres escuelas en la misma cuadra.",
+            desc: "Trámites y escuelas: CFE, CECATI 70, Preparatoria Enrique Ramírez, Secundaria Técnica 110 y el CAM.",
+            propuesta: true, // true: ubicación elegida en gabinete, falta visitarla
+            cerca: [
+                { nombre: "CFE · atención y pago", tipo: "trámite", min: 1, lat: 17.96818, lng: -102.209653 },
+                { nombre: "CAM Educación Especial", tipo: "escuela", min: 3, lat: 17.968487, lng: -102.207728 },
+                { nombre: "Preparatoria Gral. Enrique Ramírez", tipo: "escuela", min: 3, lat: 17.967069, lng: -102.210578 },
+                { nombre: "Coppel", tipo: "compras", min: 4, lat: 17.969758, lng: -102.210503 },
+                { nombre: "Secundaria Técnica 110", tipo: "escuela", min: 4, lat: 17.970162, lng: -102.208708 },
+                { nombre: "CECATI 70", tipo: "escuela", min: 5, lat: 17.968029, lng: -102.211845 }
+            ]
+        },
+        {
+            id: "D",
+            name: "Parada D",
+            corto: "D",
+            apodo: "ISSSTE · Tec de Monterrey",
+            km: 6.85, // distancia sobre el recorrido desde la base (ayuda cuando una calle se recorre de ida y de vuelta)
+            lat: 17.961366,
+            lng: -102.203275,
+            calle: "Av. Melchor Ocampo, carril hacia el oriente",
+            referencia: "Junto al Tec de Monterrey; el ISSSTE y Bodega Aurrera a pocos pasos",
+            texto: "Llegada al centro por Av. Melchor Ocampo: universidad, colegio, supermercado, parque y la clínica del ISSSTE en un radio de cinco minutos.",
+            desc: "Nodo de estudiantes, derechohabientes del ISSSTE y compras de todos los días.",
+            propuesta: true, // true: ubicación elegida en gabinete, falta visitarla
+            cerca: [
+                { nombre: "Tec de Monterrey", tipo: "escuela", min: 1, lat: 17.961248, lng: -102.203697 },
+                { nombre: "Instituto Rector Hidalgo", tipo: "escuela", min: 2, lat: 17.960683, lng: -102.202401 },
+                { nombre: "Bodega Aurrera", tipo: "compras", min: 2, lat: 17.962404, lng: -102.203835 },
+                { nombre: "Parque Erandeni", tipo: "parque", min: 3, lat: 17.962317, lng: -102.202264 },
+                { nombre: "ISSSTE Ricardo Flores Magón", tipo: "salud", min: 4, lat: 17.960024, lng: -102.204883 },
+                { nombre: "Secundaria Federal Jaime Torres Bodet", tipo: "escuela", min: 5, lat: 17.962101, lng: -102.20069 }
+            ]
+        },
+        {
+            id: "E",
+            name: "Parada E",
+            corto: "E",
+            apodo: "Central de autobuses",
+            km: 7.79, // distancia sobre el recorrido desde la base (ayuda cuando una calle se recorre de ida y de vuelta)
+            lat: 17.957662,
+            lng: -102.196765,
+            calle: "Calle Mariano Matamoros, carril hacia el sureste",
+            referencia: "A cuatro minutos de la Central Estrella de Oro y de Plaza Zirahuén",
+            texto: "Conexión con los autobuses foráneos: quien llega a la central encuentra aquí la combi. Cerca están Plaza Zirahuén, escuelas y la Unidad Deportiva.",
+            desc: "Transbordo con autobuses foráneos y acceso a la Unidad Deportiva.",
+            propuesta: true, // true: ubicación elegida en gabinete, falta visitarla
+            cerca: [
+                { nombre: "Central Estrella de Oro", tipo: "transporte", min: 4, lat: 17.956068, lng: -102.197778 },
+                { nombre: "Plaza Zirahuén", tipo: "compras", min: 4, lat: 17.959792, lng: -102.196201 },
+                { nombre: "Secundaria Técnica 12", tipo: "escuela", min: 5, lat: 17.959869, lng: -102.197692 },
+                { nombre: "Unidad Deportiva Lázaro Cárdenas", tipo: "parque", min: 6, lat: 17.956197, lng: -102.199582 },
+                { nombre: "Primaria Federal Lázaro Cárdenas", tipo: "escuela", min: 6, lat: 17.959993, lng: -102.199187 },
+                { nombre: "Palacio Municipal", tipo: "trámite", min: 9, lat: 17.962282, lng: -102.197804 }
+            ]
+        },
+        {
+            id: "F",
+            name: "Parada F",
+            corto: "F",
+            apodo: "Centro · Mercado Hidalgo",
+            km: 10.05, // distancia sobre el recorrido desde la base (ayuda cuando una calle se recorre de ida y de vuelta)
+            lat: 17.96384,
+            lng: -102.195897,
+            calle: "Av. Heroica Escuela Naval Militar, carril hacia el poniente",
+            referencia: "Junto al Parque Tierra Caliente, a tres minutos del Mercado Hidalgo",
+            texto: "El corazón del centro: mercado, Palacio Municipal, Protección Civil, COCOTRA y el Hospital del IMSS a menos de siete minutos.",
+            desc: "La parada con más destinos: compras, trámites municipales y el hospital general del IMSS.",
+            propuesta: true, // true: ubicación elegida en gabinete, falta visitarla
+            cerca: [
+                { nombre: "Parque Tierra Caliente", tipo: "parque", min: 1, lat: 17.964515, lng: -102.195628 },
+                { nombre: "Mercado Hidalgo", tipo: "compras", min: 3, lat: 17.963013, lng: -102.194843 },
+                { nombre: "Protección Civil", tipo: "trámite", min: 4, lat: 17.962724, lng: -102.198002 },
+                { nombre: "Palacio Municipal", tipo: "trámite", min: 5, lat: 17.962282, lng: -102.197804 },
+                { nombre: "COCOTRA (Transporte Público)", tipo: "trámite", min: 6, lat: 17.965856, lng: -102.193421 },
+                { nombre: "Hospital IMSS", tipo: "salud", min: 6, lat: 17.964057, lng: -102.19938 }
+            ]
+        },
+        {
+            id: "G",
+            name: "Parada G",
+            corto: "G",
+            apodo: "Soriana",
+            km: 12.27, // distancia sobre el recorrido desde la base (ayuda cuando una calle se recorre de ida y de vuelta)
+            lat: 17.970361,
+            lng: -102.211385,
+            calle: "Prol. Tulipanes, carril hacia el nororiente",
+            referencia: "Frente a Soriana Mercado y Coppel",
+            texto: "De regreso del centro, en Prol. Tulipanes: supermercado y tiendas; el Hospital Naval y el CECATI a cinco minutos.",
+            desc: "Compras de la semana y conexión con el Hospital Naval.",
+            propuesta: true, // true: ubicación elegida en gabinete, falta visitarla
+            cerca: [
+                { nombre: "Soriana Mercado", tipo: "compras", min: 1, lat: 17.970053, lng: -102.211207 },
+                { nombre: "Coppel", tipo: "compras", min: 2, lat: 17.969758, lng: -102.210503 },
+                { nombre: "CECATI 70", tipo: "escuela", min: 5, lat: 17.968029, lng: -102.211845 },
+                { nombre: "Hospital Naval", tipo: "salud", min: 5, lat: 17.972443, lng: -102.212653 },
+                { nombre: "Secundaria Técnica 110", tipo: "escuela", min: 5, lat: 17.970162, lng: -102.208708 }
+            ]
+        },
+        {
+            id: "H",
+            name: "Parada H",
+            corto: "H",
+            apodo: "Plaza Las Américas",
+            km: 14.19, // distancia sobre el recorrido desde la base (ayuda cuando una calle se recorre de ida y de vuelta)
+            lat: 17.97633,
             lng: -102.213406,
             calle: "Av. Belisario Domínguez, carril hacia el poniente",
             referencia: "Frente a la plaza comercial, junto al McDonald's",
             texto: "Del lado de Plaza Las Américas, junto al estacionamiento y al McDonald's de la esquina; al fondo, Walmart y Sam's Club. Enfrente, un camellón arbolado y la barda del fraccionamiento Marina 3.",
-            desc: "{Descripción breve de la parada B.}",
-            imagen: "img/parada-b.jpg",
+            desc: "Plaza Las Américas, Walmart y Liverpool: la parada de compras más grande del recorrido.",
+            imagen: "img/parada-h.jpg",
+            propuesta: false, // true: ubicación elegida en gabinete, falta visitarla
             entorno: [
                 "Banqueta con franja de pasto del lado de la plaza comercial",
                 "McDonald's en la esquina; Walmart y Sam's Club al fondo",
                 "Estacionamiento de la plaza con luminarias e isletas",
                 "Camellón arbolado al centro de la avenida",
                 "Barda y acceso del fraccionamiento Marina 3 enfrente"
+            ],
+            cerca: [
+                { nombre: "Liverpool", tipo: "compras", min: 2, lat: 17.977611, lng: -102.213659 },
+                { nombre: "Plaza Las Américas", tipo: "compras", min: 3, lat: 17.978049, lng: -102.212959 },
+                { nombre: "Walmart Supercenter", tipo: "compras", min: 4, lat: 17.97849, lng: -102.212616 },
+                { nombre: "Hospital Naval", tipo: "salud", min: 8, lat: 17.972443, lng: -102.212653 },
+                { nombre: "Secundaria Técnica Estatal 9", tipo: "escuela", min: 8, lat: 17.978768, lng: -102.217253 }
+            ]
+        },
+        {
+            id: "I",
+            name: "Parada I",
+            corto: "I",
+            apodo: "Valle del Tecnológico",
+            km: 17.0, // distancia sobre el recorrido desde la base (ayuda cuando una calle se recorre de ida y de vuelta)
+            lat: 17.974054,
+            lng: -102.228038,
+            calle: "Av. Melchor Ocampo, carril hacia el poniente",
+            referencia: "Frente a Merza, en la colonia Valle del Tecnológico",
+            texto: "Última parada antes de volver a la base, sobre Av. Melchor Ocampo de regreso: supermercado, colegio y dos bachilleratos.",
+            desc: "Regreso de estudiantes y compras de la colonia antes de llegar a la base.",
+            propuesta: true, // true: ubicación elegida en gabinete, falta visitarla
+            cerca: [
+                { nombre: "Merza", tipo: "compras", min: 2, lat: 17.974249, lng: -102.226818 },
+                { nombre: "Colegio Anglo Mexicano", tipo: "escuela", min: 3, lat: 17.975276, lng: -102.226951 },
+                { nombre: "Bachillerato Belisario Domínguez", tipo: "escuela", min: 4, lat: 17.974343, lng: -102.229979 },
+                { nombre: "IMSS UMF 78", tipo: "salud", min: 6, lat: 17.973626, lng: -102.224592 },
+                { nombre: "Preparatoria UVAC", tipo: "escuela", min: 7, lat: 17.976033, lng: -102.224926 },
+                { nombre: "Centro Médico Santa Clara", tipo: "salud", min: 7, lat: 17.975155, lng: -102.224437 }
             ]
         }
     ],
