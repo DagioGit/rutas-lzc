@@ -196,14 +196,31 @@
         const cr = porId(F.ruta.calle);
         const marco = marcoCalle(cr.pts);
         const N = (s, d) => marco.en(s, d);
-        const dCaseta = cr.mitad + (cr.ciclovia || 0) + Math.max(1.4, cr.banq * 0.55) + (F.ruta.retiro || 0);
-        const posCaseta = N(F.ruta.s || 0, dCaseta);
-        // plataforma de la parada si la banqueta es angosta
-        if (cr.banq < 3.2) {
-            const pc = N(F.ruta.s || 0, cr.mitad + (cr.ciclovia || 0) + 1.75);
-            caja(7, 3.3, 0.16, pc.x, pc.y, 0, pc.ang, M.banqueta);
+        // La caseta (2.40 m de fondo) va junto a la guarnición, a 0.30 m de la orilla, y el
+        // tótem a un lado, en la misma franja. Detrás siempre quedan al menos 1.20 m libres
+        // para caminar: si la banqueta no alcanza, se pavimenta una explanada detrás de ella
+        // (en el remetimiento del predio), nunca se le quita espacio a la calle.
+        const sC = F.ruta.s || 0;
+        const orilla = cr.mitad + (cr.ciclovia || 0);
+        const dCaseta = orilla + 0.3 + 1.2 + (F.ruta.retiro || 0);
+        const posCaseta = N(sC, dCaseta);
+        const FONDO_CASETA = 0.3 + 2.4 + (F.ruta.retiro || 0);
+        const explanada = F.ruta.explanada != null ? F.ruta.explanada : Math.max(0, FONDO_CASETA + 1.25 - cr.banq);
+        const tramoRuta = (s0, s1, paso = 1) => { const r = []; for (let s = s0; s <= s1 + 1e-6; s += paso) { const p = N(s, 0); r.push({ x: p.x, y: p.y }); } return r; };
+        const zonaParada = { s0: sC - 7, s1: sC + 6, d0: orilla, d1: orilla + cr.banq + explanada };
+        if (explanada > 0) {
+            const r = tramoRuta(sC - 6.5, sC + 5.5, 0.5);
+            franja(r, orilla + cr.banq - 0.02, orilla + cr.banq + explanada, 0, 0.15, M.banqueta, M.guarnicion, 3);
         }
-        const lejosCaseta = (x, y, r) => Math.hypot(x - posCaseta.x, y - posCaseta.y) > r;
+        // ¿está (x, y) en la franja de la parada? (caseta, tótem y paso libre)
+        const enParada = (x, y, margen = 0) => {
+            const L = marco.linea;
+            const sx = distanciaMasCercana(L, x, y) - marco.s0;
+            const p = puntoEn(L, sx + marco.s0), u = direccionEn(L, sx + marco.s0, 1);
+            const d = (x - p.x) * u.y - (y - p.y) * u.x;
+            return sx >= zonaParada.s0 - margen && sx <= zonaParada.s1 + margen && d >= zonaParada.d0 - 0.5 && d <= zonaParada.d1 + margen;
+        };
+        const lejosCaseta = (x, y, r) => Math.hypot(x - posCaseta.x, y - posCaseta.y) > r && !enParada(x, y, 0.8);
 
         // ---------- Edificios ----------
         const ocupados = [];
@@ -221,10 +238,12 @@
             if (azarCasa() < (F.locales == null ? 0.2 : F.locales)) op.planta = ["cortina", "puerta"];
             return { ...op, ...base };
         };
+        const rotulos = [];
         (F.edificios || []).forEach(e => {
             const pts = e.rect ? rect(...e.rect) : P(e.pts);
             const c = centro(pts);
-            ocupados.push({ pts, c, r: Math.sqrt(Math.abs(areaPoligono(pts))) / 2 });
+            if (e.rotulo) rotulos.push({ texto: e.rotulo, x: c.x, y: c.y, z: (e.tipo === "comercio" || e.tipo === "nave" ? e.alto || 7 : (e.pisos || 1) * 3) + 1.2, tipo: "lugar" });
+            ocupados.push({ pts, c, r: Math.sqrt(Math.abs(areaPoligono(pts))) / 2, h: e.tipo === "comercio" || e.tipo === "nave" ? (e.alto || 7) + 0.6 : (e.pisos || 2) * 3 + 1.6 });
             const calle = e.calle ? porId(e.calle).pts : (calleCercana(c.x, c.y) || {}).pts;
             if (e.tipo === "comercio" || e.tipo === "nave") {
                 kit.edificio(pts, e.alto || 7, e.color || "#ecebe5", { vidrio: e.vidrio, ancho: e.vanos == null ? (e.tipo === "nave" ? 0.08 : 0.7) : e.vanos, colorPretil: e.colorPretil || e.color, tinacos: e.tinacos, pretil: e.pretil });
@@ -235,7 +254,7 @@
                     if (fr) kit.letreroTexto(ancho, alto, (g, w, h) => {
                         g.fillStyle = fondo; g.fillRect(0, 0, w, h);
                         g.fillStyle = color; g.font = `bold ${h * 0.56}px Arial`; g.textAlign = "center"; g.textBaseline = "middle";
-                        g.fillText(texto, w / 2, h / 2 + 1);
+                        g.fillText(texto, w / 2, h / 2 + 1, w * 0.92);
                     }, fr.m.x + fr.n.x * 0.12, fr.m.y + fr.n.y * 0.12, z || Math.max(3.4, (e.alto || 7) - 1), fr.ang + Math.PI);
                 }
             } else {
@@ -284,11 +303,11 @@
                     const pts = rect(cx, cy, frente, fondo, ang);
                     const lim = F.lim;
                     if (pts.some(q => q.x < lim.minX + 1 || q.x > lim.maxX - 1 || q.y < lim.minY + 1 || q.y > lim.maxY - 1)) continue;
-                    if (!lejosCaseta(cx, cy, Math.max(frente, fondo) / 2 + 5)) continue;
+                    if (!lejosCaseta(cx, cy, Math.max(frente, fondo) / 2 + 5) || pts.some(q => enParada(q.x, q.y, 1))) continue;
                     if (pts.concat([{ x: cx, y: cy }]).some(q => calles.some(o => distanciaALinea(o.pts, q.x, q.y) < o.mitad + o.banq + 0.2))) continue;
                     if (pts.concat([{ x: cx, y: cy }]).some(q => lotesPts.some(l => dentro(q.x, q.y, l)) || evitar.some(l => dentro(q.x, q.y, l)))) continue;
                     if (ocupados.some(o => Math.hypot(o.c.x - cx, o.c.y - cy) < o.r + Math.min(frente, fondo) / 2 + 0.3 || o.pts.some(q => dentro(q.x, q.y, pts)) || pts.some(q => dentro(q.x, q.y, o.pts)))) continue;
-                    ocupados.push({ pts, c: { x: cx, y: cy }, r: Math.min(frente, fondo) / 2 });
+                    ocupados.push({ pts, c: { x: cx, y: cy }, r: Math.min(frente, fondo) / 2, h: 7.6 });
                     kit.casa(pts, c.pts, { ppm: Math.hypot(cx - posCaseta.x, cy - posCaseta.y) < 70 ? 30 : 20, banqueta: false, ...opcionesColonia(F.relleno.op) });
                 }
             });
@@ -297,10 +316,37 @@
         // ---------- Bardas ----------
         (F.bardas || []).forEach(b => kit.barda(P(b.pts), b.alto || 2.4, b.tipo || "block", b.color));
 
+        // ---------- Letreros de los negocios que registra OpenStreetMap ----------
+        // Cada negocio con nombre lleva su letrero en la fachada del edificio más cercano,
+        // del lado de la calle, para que la cuadra se reconozca.
+        const COLOR_NEGOCIO = { restaurant: "#c0392b", fast_food: "#d35400", cafe: "#6d4c41", bar: "#4a235a", pharmacy: "#1e8449", clinic: "#1f618d", school: "#7d3c98", books: "#2e86c1", lottery: "#b7950b", post_office: "#34495e", travel_agency: "#117a65" };
+        const conLetrero = new Set();
+        (F.lugares || []).forEach(([x, y, tipo, nombre]) => {
+            if (!nombre || /semefo/i.test(nombre) || rotulos.some(r => r.texto === nombre)) return;
+            const cand = ocupados.map(o => ({ o, d: Math.hypot(o.c.x - x, o.c.y - y) - o.r })).filter(q => q.d < 9 && !conLetrero.has(q.o)).sort((a, b) => a.d - b.d)[0];
+            if (!cand) return;
+            const o = cand.o;
+            if (enParada(o.c.x, o.c.y, 2)) return;
+            const calle = calleCercana(o.c.x, o.c.y);
+            const fr = calle && frenteHacia(o.pts, calle.pts);
+            if (!fr || fr.L < 3.5) return;
+            conLetrero.add(o);
+            const texto = nombre.length > 26 ? nombre.slice(0, 25) + "…" : nombre;
+            const ancho = Math.min(fr.L * 0.85, 1.2 + texto.length * 0.32);
+            const fondo = COLOR_NEGOCIO[tipo] || "#f4f1e8", tinta = COLOR_NEGOCIO[tipo] ? "#ffffff" : "#26333b";
+            kit.letreroTexto(ancho, 0.75, (g, w, h) => {
+                g.fillStyle = fondo; g.fillRect(0, 0, w, h);
+                g.fillStyle = tinta; g.font = `bold ${h * 0.5}px Arial`; g.textAlign = "center"; g.textBaseline = "middle";
+                g.fillText(texto.toUpperCase(), w / 2, h / 2 + 1, w * 0.94);
+            }, fr.m.x + fr.n.x * 0.14, fr.m.y + fr.n.y * 0.14, Math.min(3.3, (o.h || 6) - 1.4), fr.ang + Math.PI);
+        });
+
         // ---------- Vegetación ----------
-        (F.arboles || []).forEach(([x, y, r = 3.2, alto = 7, blanco]) => { if (lejosCaseta(x, y, 3)) kit.arbol(x, y, r, alto, { troncoBlanco: !!blanco }); });
-        (F.palmeras || []).forEach(([x, y, alto = 9]) => kit.palmera(x, y, alto, 0.06));
-        (F.arbustos || []).forEach(([x, y, r = 0.8]) => kit.arbusto(x, y, r));
+        // (nada de árboles encima de un edificio ni en la franja de la parada)
+        const sobreEdificio = (x, y) => ocupados.some(o => dentro(x, y, o.pts));
+        (F.arboles || []).forEach(([x, y, r = 3.2, alto = 7, blanco]) => { if (lejosCaseta(x, y, 3) && !sobreEdificio(x, y)) kit.arbol(x, y, r, alto, { troncoBlanco: !!blanco }); });
+        (F.palmeras || []).forEach(([x, y, alto = 9]) => { if (lejosCaseta(x, y, 2) && !sobreEdificio(x, y)) kit.palmera(x, y, alto, 0.06); });
+        (F.arbustos || []).forEach(([x, y, r = 0.8]) => { if (lejosCaseta(x, y, 1) && !sobreEdificio(x, y)) kit.arbusto(x, y, r); });
         // árboles sueltos en banquetas
         calles.forEach(c => {
             if (!c.arbolesBanqueta) return;
@@ -309,7 +355,7 @@
                     const p = puntoEn(c.linea, s), u = direccionEn(c.linea, s, 1);
                     const d = (c.mitad + c.banq - 0.6) * lado;
                     const x = p.x + u.y * d, y = p.y - u.x * d;
-                    if (!lejosCaseta(x, y, 6)) continue;
+                    if (!lejosCaseta(x, y, 6) || sobreEdificio(x, y)) continue;
                     if (calles.some(o => o !== c && distanciaALinea(o.pts, x, y) < o.mitad + 1.5)) continue;
                     if ((s * 13 + lado * 5) % 10 < 4) kit.arbolJoven(x, y); else kit.arbol(x, y, 2.6 + (s % 5) * 0.2, 6 + (s % 3));
                 }
@@ -371,14 +417,105 @@
         });
         kit.autosEstacionados(estacionados);
 
+        // ---------- Revisión: que la parada no estorbe ----------
+        // Edificios dentro de la franja de la parada y calles que cruzan cerca (esquinas).
+        const revision = [];
+        ocupados.forEach((o, k) => {
+            const muestras = o.pts.concat([o.c]);
+            for (let i = 0; i < o.pts.length; i++) { const a = o.pts[i], b = o.pts[(i + 1) % o.pts.length]; for (let t = 0.25; t < 1; t += 0.25) muestras.push({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t }); }
+            if (muestras.some(q => enParada(q.x, q.y))) revision.push(`edificio ${k} dentro de la franja de la parada`);
+        });
+        calles.forEach(o => {
+            if (o === cr || (o.nombre && o.nombre === cr.nombre)) return;
+            for (let s = zonaParada.s0 - 4; s <= zonaParada.s1 + 4; s += 1) {
+                const p = N(s, orilla + 1);
+                if (distanciaALinea(o.pts, p.x, p.y) < o.mitad + (o.banq || 0) + 1) { revision.push(`cruce con ${o.nombre || o.tipo || "calle"} a ${Math.round(s - sC)} m de la caseta`); break; }
+            }
+        });
+        if (revision.length && typeof console !== "undefined") console.warn("[parada]", revision.join(" · "));
+
+        // ---------- Nombres de calles y lugares ----------
+        const abreviar = t => t.replace(/^Avenida /, "Av. ").replace(/^Calle /, "C. ").replace(/^Prolongación /, "Prol. ").replace(/^Andador /, "And. ").replace(/^Boulevard /, "Blvd. ").replace(/ Heroica Escuela Naval Militar/, " Heroica Esc. Naval Militar");
+        const yaNombradas = new Set();
+        const dentroLim = (x, y) => x > F.lim.minX + 8 && x < F.lim.maxX - 8 && y > F.lim.minY + 8 && y < F.lim.maxY - 8;
+        const dCalle = c => distanciaALinea(c.pts, posCaseta.x, posCaseta.y);
+        [cr].concat(calles.filter(c => c !== cr && c.nombre && dCalle(c) < 75).sort((a, b) => dCalle(a) - dCalle(b))).forEach(c => {
+            if (rotulos.filter(r => r.tipo === "calle").length >= 4) return;
+            if (!c.nombre || yaNombradas.has(abreviar(c.nombre)) || (F.sinNombre || []).includes(c.nombre)) return;
+            let p = null;
+            if (c === cr) p = N(sC - 20, 0);
+            else {
+                // el punto de la calle más cercano a la parada, recorrido 18 m para no tapar la esquina
+                const s0 = distanciaMasCercana(c.linea, posCaseta.x, posCaseta.y);
+                for (const ds of [18, -18, 35, -35, 0]) {
+                    const s1 = Math.max(4, Math.min(c.linea.largo - 4, s0 + ds));
+                    const q = puntoEn(c.linea, s1);
+                    if (dentroLim(q.x, q.y) && Math.hypot(q.x - posCaseta.x, q.y - posCaseta.y) > 12) { p = q; break; }
+                }
+            }
+            if (!p || !dentroLim(p.x, p.y) || Math.hypot(p.x - posCaseta.x, p.y - posCaseta.y) > 110) return;
+            if (rotulos.some(r => r.tipo === "calle" && Math.hypot(r.x - p.x, r.y - p.y) < 20)) return;
+            yaNombradas.add(abreviar(c.nombre));
+            rotulos.push({ texto: abreviar(c.nombre), x: p.x, y: p.y, z: 2.2, tipo: "calle" });
+        });
+        (F.rotulos || []).forEach(([texto, x, y, z = 6]) => rotulos.push({ texto, x, y, z, tipo: "lugar" }));
+        const rotulo = (texto, s, d, z = 6) => { const p = N(s, d); rotulos.push({ texto, x: p.x, y: p.y, z, tipo: "lugar" }); };
+
         // ---------- Detalles propios de la parada ----------
-        const ctx = { kit, THREE, M, P, N, porId, calles, posCaseta, rect, mat, caja, frenteHacia };
+        const ctx = { rotulo, kit, THREE, M, P, N, porId, calles, posCaseta, rect, mat, caja, frenteHacia, enParada, zonaParada, sC, explanada, tramoRuta, sobreEdificio };
         const extraAnimar = F.extra ? F.extra(ctx) : null;
 
         const C = (s, d, z) => { const p = N((F.ruta.s || 0) + s, d); return new THREE.Vector3(p.x, p.y, z); };
         const carrilCombi = cr.cam ? cr.cam / 2 + cr.ancho / 2 - 1.8 : Math.max(1.5, cr.mitad - 1.9);
+        // Vista inicial: la caseta en primer plano y, detrás, el lugar que da nombre a la parada
+        // (F.foco, o el edificio con rótulo más cercano), para que se entienda dónde está.
+        let inicio = { posicion: C(...(F.inicio || [-19, cr.mitad - 2.5, 7])), objetivo: C(...(F.objetivo || [1, dCaseta + 0.5, 1.3])) };
+        const focoLugar = F.foco ? { x: F.foco[0], y: F.foco[1] }
+            : rotulos.filter(r => r.tipo === "lugar").sort((a, b) => Math.hypot(a.x - posCaseta.x, a.y - posCaseta.y) - Math.hypot(b.x - posCaseta.x, b.y - posCaseta.y))[0];
+        if (focoLugar && !F.inicio) {
+            const vx = posCaseta.x - focoLugar.x, vy = posCaseta.y - focoLugar.y, L = Math.hypot(vx, vy) || 1;
+            // de 3/4: se gira la dirección hacia atrás de la calle para ver la avenida
+            const giro = F.giro == null ? 0.55 : F.giro;
+            const t = direccionEn(marco.linea, marco.s0 + sC, 1);
+            let ux = vx / L, uy = vy / L;
+            const lado = Math.sign(uy * t.x - ux * t.y) || 1;
+            const c = Math.cos(giro * lado), sn = Math.sin(giro * lado);
+            [ux, uy] = [ux * c - uy * sn, ux * sn + uy * c];
+            // se prueban giros y alturas hasta que ningún edificio tape la caseta
+            const dist = F.distancia || 27;
+            const enfoque = { x: posCaseta.x + (focoLugar.x - posCaseta.x) * 0.3, y: posCaseta.y + (focoLugar.y - posCaseta.y) * 0.3 };
+            const tapada = (cx, cy, cz) => {
+                for (let k = 1; k < 40; k++) {
+                    const u = k / 40, x = cx + (posCaseta.x - cx) * u, y = cy + (posCaseta.y - cy) * u, z = cz + (1.5 - cz) * u;
+                    if (ocupados.some(o => Math.hypot(o.c.x - x, o.c.y - y) < o.r * 2.2 + 2 && z < o.h && dentro(x, y, o.pts))) return true;
+                }
+                return false;
+            };
+            const v0 = [vx / L, vy / L];
+            // (mejor si la cámara no queda encima de una azotea, que tapa media vista)
+            let elegida = null;
+            const sobreAzotea = (x, y) => ocupados.some(o => dentro(x, y, o.pts));
+            for (const exigir of [true, false]) {
+                for (const alto of F.alto ? [F.alto] : [16, 21, 27]) {
+                    for (const dd of [dist, dist * 0.75, dist * 1.3]) {
+                        for (const g of [giro, giro * 1.6, giro * 0.3, -giro, -giro * 1.6, giro * 2.2, -giro * 2.2]) {
+                            const c = Math.cos(g * lado), sn = Math.sin(g * lado);
+                            const ex = v0[0] * c - v0[1] * sn, ey = v0[0] * sn + v0[1] * c;
+                            const cx = posCaseta.x + ex * dd, cy = posCaseta.y + ey * dd;
+                            if (exigir && sobreAzotea(cx, cy)) continue;
+                            if (!tapada(cx, cy, alto)) { elegida = [cx, cy, alto]; break; }
+                        }
+                        if (elegida) break;
+                    }
+                    if (elegida) break;
+                }
+                if (elegida) break;
+            }
+            if (!elegida) elegida = [posCaseta.x + ux * dist, posCaseta.y + uy * dist, 30];
+            inicio = { posicion: new THREE.Vector3(...elegida), objetivo: new THREE.Vector3(enfoque.x, enfoque.y, 2) };
+        }
         const vistas = F.vistas || {
-            inicio: { posicion: C(...(F.inicio || [-19, cr.mitad - 2.5, 7])), objetivo: C(1, dCaseta + 0.5, 1.3) },
+            inicio,
             calle: { posicion: C(7, cr.mitad - 3.5, 1.65), objetivo: C(-1, dCaseta + 3, 2.2) },
             aerea: { posicion: C(-120, -150, 150), objetivo: C(0, 10, 0) }
         };
@@ -392,7 +529,9 @@
             pasajeros: { marco: { en: (s, d) => marco.en((F.ruta.s || 0) + s, d) }, d: dCaseta - 0.4, puerta: cr.mitad + 0.4 },
             animar: dt => { animarTrafico(dt); if (extraAnimar) extraAnimar(dt); },
             vistas,
-            entorno: F.entorno || []
+            entorno: F.entorno || [],
+            rotulos,
+            revision
         };
     }
 
@@ -512,7 +651,7 @@
                 }
             }
         });
-        return { calles, edificios, lotes, arboles };
+        return { calles, edificios, lotes, arboles, lugares: osm.p || [] };
     }
 
     // Registra una parada armada con los datos de OpenStreetMap (zonas-datos.js) y su configuración.
@@ -525,7 +664,7 @@
                 lim: cfg.lim || { minX: -120, maxX: 120, minY: -110, maxY: 110 },
                 suelo: cfg.suelo,
                 calles: base.calles.concat(cfg.callesExtra || []),
-                ruta: { calle: "ruta", s: cfg.ruta.s || 0, retiro: cfg.ruta.retiro },
+                ruta: { calle: "ruta", s: cfg.ruta.s || 0, retiro: cfg.ruta.retiro, explanada: cfg.ruta.explanada },
                 edificios: base.edificios.concat(cfg.edificiosExtra || []),
                 lotes: (cfg.lotesAntes || []).concat(base.lotes, cfg.lotesExtra || []),
                 arboles: base.arboles.concat(cfg.arboles || []),
@@ -534,8 +673,9 @@
                     frente: 7.5, fondo: 11, huecos: 0.06, ...(cfg.relleno || {}),
                     calles: base.calles.filter(c => RELLENO.has(c.tipo) && !(cfg.sinRelleno || []).includes(c.nombre)).map(c => c.id)
                 },
-                pisos2: cfg.pisos2, locales: cfg.locales,
-                postes: cfg.postes, extra: cfg.extra, vistas: cfg.vistas, inicio: cfg.inicio, entorno: cfg.entorno
+                pisos2: cfg.pisos2, locales: cfg.locales, lugares: base.lugares,
+                postes: cfg.postes, extra: cfg.extra, vistas: cfg.vistas, inicio: cfg.inicio, entorno: cfg.entorno,
+                rotulos: cfg.rotulos, sinNombre: cfg.sinNombre, objetivo: cfg.objetivo, foco: cfg.foco, giro: cfg.giro, distancia: cfg.distancia, alto: cfg.alto
             };
             return zonaCiudad(THREE, F);
         };

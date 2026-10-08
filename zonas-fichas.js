@@ -10,14 +10,36 @@
     if (!Z) return;
 
     // ---------- utilidades para los detalles ----------
+    // Tramos de [s0, s1] que quedan fuera de la franja de la parada (caseta, tótem y paso libre).
+    function fueraParada(ctx, s0, s1) {
+        const z = ctx.zonaParada, a = z.s0 - 0.5, b = z.s1 + 0.5;
+        if (s1 <= a || s0 >= b) return [[s0, s1]];
+        return [[s0, a], [b, s1]].filter(([x, y]) => y - x > 0.2);
+    }
     // Barda a lo largo de la calle de la parada, entre s0 y s1, a d metros del eje.
+    // Si la barda pasa por donde va la parada y no deja el paso libre detrás de la caseta,
+    // en ese tramo se remete (el predio cede la franja) y se cierra con dos regresos.
     function bardaCalle(ctx, s0, s1, d, alto, material, grosor = 0.2, z0 = 0.15) {
         const { N, caja } = ctx;
-        for (let s = s0; s < s1; s += 3) {
-            const a = N(s, d), b = N(Math.min(s + 3, s1), d);
-            const L = Math.hypot(b.x - a.x, b.y - a.y);
-            caja(L + 0.05, grosor, alto, (a.x + b.x) / 2, (a.y + b.y) / 2, z0, Math.atan2(b.y - a.y, b.x - a.x), material);
-        }
+        const tramo = (s0, s1, d) => {
+            for (let s = s0; s < s1; s += 3) {
+                const a = N(s, d), b = N(Math.min(s + 3, s1), d);
+                const L = Math.hypot(b.x - a.x, b.y - a.y);
+                caja(L + 0.05, grosor, alto, (a.x + b.x) / 2, (a.y + b.y) / 2, z0, Math.atan2(b.y - a.y, b.x - a.x), material);
+            }
+        };
+        const z = ctx.zonaParada;
+        if (!z || d <= 0 || d >= z.d1 + 0.1) return tramo(s0, s1, d);
+        fueraParada(ctx, s0, s1).forEach(([a, b]) => tramo(a, b, d));
+        const a = Math.max(s0, z.s0 - 0.5), b = Math.min(s1, z.s1 + 0.5);
+        if (b <= a) return;
+        const dR = z.d1 + 0.15;
+        tramo(a, b, dR);
+        [a, b].forEach(sR => {
+            if (sR <= s0 || sR >= s1) return;
+            const p = N(sR, d), q = N(sR, dR);
+            caja(Math.hypot(q.x - p.x, q.y - p.y) + grosor, grosor, alto, (p.x + q.x) / 2, (p.y + q.y) / 2, z0, Math.atan2(q.y - p.y, q.x - p.x), material);
+        });
     }
     // Letrero con texto, de frente a la calle de la parada (mirando hacia d < 0).
     function letrero(ctx, s, d, z, ancho, alto, texto, fondo, color = "#ffffff", girar = 0) {
@@ -26,7 +48,7 @@
         return kit.letreroTexto(ancho, alto, (g, w, h) => {
             g.fillStyle = fondo; g.fillRect(0, 0, w, h);
             g.fillStyle = color; g.font = `bold ${h * 0.56}px Arial`; g.textAlign = "center"; g.textBaseline = "middle";
-            g.fillText(texto, w / 2, h / 2 + 1);
+            g.fillText(texto, w / 2, h / 2 + 1, w * 0.92);
         }, p.x, p.y, z, p.ang + girar);
     }
     // Torre de celosía (alta tensión o estructura de subestación)
@@ -85,7 +107,7 @@
         calles: { "Avenida Melchor Ocampo": { estacionados: 1 } },
         locales: 0.45, pisos2: 0.45,
         especiales: [
-            { en: [9, 31], op: { tipo: "comercio", alto: 10.5, color: "#eef0f1", colorPretil: "#1f2f5c", vidrio: "#2b3b4c", vanos: 0.55, letrero: { texto: "FATIMA CLINICA", fondo: "#1f2f5c", ancho: 11, alto: 1.5, z: 8.4 } } },
+            { en: [9, 31], op: { rotulo: "Clínica Fátima", tipo: "comercio", alto: 10.5, color: "#eef0f1", colorPretil: "#1f2f5c", vidrio: "#2b3b4c", vanos: 0.55, letrero: { texto: "FATIMA CLINICA", fondo: "#1f2f5c", ancho: 11, alto: 1.5, z: 8.4 } } },
             { en: [27, 20], op: { tipo: "comercio", alto: 10.5, color: "#eef0f1", colorPretil: "#1f2f5c", vidrio: "#2b3b4c", vanos: 0.55 } }
         ],
         palmeras: [[20, 10, 7], [24, 13, 8], [-2, 47, 7.5]],
@@ -128,7 +150,8 @@
             const dB = r.mitad + r.banq + 0.25;
             const concreto = mat(0xffffff, { map: kit.texConcreto(), roughness: 0.95 });
             bardaCalle(ctx, -62, 52, dB, 3.1, concreto, 0.3);
-            letrero(ctx, 14, dB - 0.2, 1.9, 2.6, 2.0, "CFE · SUBESTACIÓN", "#1c8a4a", "#ffffff", Math.PI);
+            letrero(ctx, 14, dB - 0.2, 1.9, 4.6, 1.2, "CFE · SUBESTACIÓN", "#1c8a4a", "#ffffff", Math.PI);
+            ctx.rotulo("Subestación eléctrica CFE", -10, dB + 18, 13);
             // alambre de púas sobre la barda
             for (let s = -62; s < 52; s += 0.5) { const p = N(s, dB); kit.cilindro(0.18, 0.18, 0.02, p.x, p.y, 3.35, mat(0x8c9196, { metalness: 0.6 }), 8); }
             // estructuras de acero y torres dentro de la subestación
@@ -163,17 +186,18 @@
     Z("D", {
         divididas: { "Avenida Melchor Ocampo": { camellon: 6, tipo: "tierra", arboles: 7, palmas: true, colorArbol: 0xb8b23a } },
         ruta: { nombre: "Avenida Melchor Ocampo", s: 4 },
+        foco: [-30, -12], // entre la agencia Honda y el Tec de Monterrey
         relleno: { evitar: [[[-80, 3], [80, 3], [80, -7], [-80, -7]]] },
         locales: 0.5,
         especiales: [
-            { nombre: "Tecnológico de Monterrey Campus Lázaro Cárdenas", op: { tipo: "comercio", alto: 13, color: "#f4f4f2", colorPretil: "#e5702a", vidrio: "#33424d", vanos: 0.5, letrero: { texto: "TEC DE MONTERREY", fondo: "#1d4f91", ancho: 8, alto: 1.1, z: 10.5 } } },
-            { en: [-14, -10], op: { tipo: "comercio", alto: 6, color: "#f4f4f2", colorPretil: "#d5d5d0", vidrio: "#2b3b4c", vanos: 0.7, letrero: { texto: "HONDA", fondo: "#ffffff", color: "#d71920", ancho: 4.5, alto: 1, z: 4.2 } } },
+            { nombre: "Tecnológico de Monterrey Campus Lázaro Cárdenas", op: { rotulo: "Tec de Monterrey", tipo: "comercio", alto: 13, color: "#f4f4f2", colorPretil: "#e5702a", vidrio: "#33424d", vanos: 0.5, letrero: { texto: "TEC DE MONTERREY", fondo: "#1d4f91", ancho: 8, alto: 1.1, z: 10.5 } } },
+            { en: [-14, -10], op: { rotulo: "Agencia Honda", tipo: "comercio", alto: 6, color: "#f4f4f2", colorPretil: "#d5d5d0", vidrio: "#2b3b4c", vanos: 0.7, letrero: { texto: "HONDA", fondo: "#ffffff", color: "#d71920", ancho: 4.5, alto: 1, z: 4.2 } } },
             { en: [-5, -10], op: { tipo: "comercio", alto: 5, color: "#f2f2ef", colorPretil: "#e3e3df", vidrio: "#2b3b4c", vanos: 0.6 } },
             { en: [10, -20], op: { tipo: "comercio", alto: 5.5, color: "#f2f2ef", colorPretil: "#e3e3df", vidrio: "#2b3b4c", vanos: 0.6 } },
             { en: [28, -20], op: { tipo: "comercio", alto: 8, color: "#eae6dd", colorPretil: "#b23b2e", vidrio: "#2b3b4c", vanos: 0.6 } },
             { nombre: "Inbursa", op: { tipo: "comercio", alto: 7, color: "#f2f2ef", colorPretil: "#1e3a6e", vanos: 0.6, letrero: { texto: "INBURSA", fondo: "#1e3a6e", ancho: 4, alto: 0.9 } } },
             { nombre: "Centro de Atención Telcel", op: { tipo: "comercio", alto: 7, color: "#f2f2ef", colorPretil: "#1f4aa0", vanos: 0.6, letrero: { texto: "TELCEL", fondo: "#1f4aa0", ancho: 4, alto: 0.9 } } },
-            { nuevo: [[-60, 88], [-18, 88], [-18, 120], [-60, 120]], op: { tipo: "comercio", alto: 9, color: "#f0f2ee", colorPretil: "#2e9b3e", vanos: 0.1, letrero: { texto: "BODEGA AURRERA", fondo: "#2e9b3e", color: "#ffd200", ancho: 12, alto: 1.8, z: 6.5 } } }
+            { nuevo: [[-60, 88], [-18, 88], [-18, 120], [-60, 120]], op: { rotulo: "Bodega Aurrera", tipo: "comercio", alto: 9, color: "#f0f2ee", colorPretil: "#2e9b3e", vanos: 0.1, letrero: { texto: "BODEGA AURRERA", fondo: "#2e9b3e", color: "#ffd200", ancho: 12, alto: 1.8, z: 6.5 } } }
         ],
         extra(ctx) {
             const { N, porId, mat, kit } = ctx;
@@ -213,11 +237,12 @@
     // General Mina con palmas y locales.
     Z("E", {
         ruta: { nombre: "Calle Mariano Matamoros", s: -26 },
-        inicio: [-20, 0, 9.5],
+        // la calle es angosta: la vista va sobre la calle, hacia la caseta y la barda del hotel
+        inicio: [16, -1, 13], objetivo: [-5, 4, 1.5],
         calles: { "Calle Mariano Matamoros": { ancho: 6.4, banqueta: 1.8 }, "Calle General Francisco Javier Mina": { estacionados: true } },
         pisos2: 0.5, locales: 0.35,
         especiales: [
-            { nombre: "Hotel Sol del Pacífico", op: { tipo: "comercio", alto: 12, color: "#f1e9d8", colorPretil: "#c79a62", vidrio: "#2b3b4c", vanos: 0.55 } },
+            { nombre: "Hotel Sol del Pacífico", op: { rotulo: "Hotel Sol del Pacífico", tipo: "comercio", alto: 12, color: "#f1e9d8", colorPretil: "#c79a62", vidrio: "#2b3b4c", vanos: 0.55 } },
             { nombre: "Banamex", op: { tipo: "comercio", alto: 7, color: "#f2f2ef", colorPretil: "#1b3f8f", vanos: 0.6 } },
             { nombre: "Viña del Mar", op: { tipo: "comercio", alto: 12, color: "#e4573d", colorPretil: "#f2f2ef", vanos: 0.5 } },
             { nombre: "Yunuen", op: { tipo: "comercio", alto: 9, color: "#f2f2ef", colorPretil: "#c0262c", vanos: 0.5 } }
@@ -233,7 +258,7 @@
             // zacate del terreno detrás de la barda de ladrillo
             for (let s = -60; s < -14; s += 3) { const p = ctx.N(s, -(r.mitad + r.banq + 3 + (s % 5))); kit.maleza(p.x, p.y, 1.1); }
             // arbustos frente a la barda del hotel
-            for (let s = -66; s < -8; s += 4.5) { const p = ctx.N(s, r.mitad + r.banq - 0.5); kit.arbusto(p.x, p.y, 0.7 + (Math.abs(s) % 3) * 0.2, 0x5b8c3f); }
+            for (let s = -66; s < -8; s += 4.5) { const p = ctx.N(s, r.mitad + r.banq - 0.5); if (!ctx.enParada(p.x, p.y, 1)) kit.arbusto(p.x, p.y, 0.7 + (Math.abs(s) % 3) * 0.2, 0x5b8c3f); }
         },
         entorno: [
             "Calle Mariano Matamoros, angosta y de un solo sentido, por donde bajan las combis",
@@ -250,14 +275,14 @@
     // de abarrotes azul de dos pisos y, más adelante, la casa cubierta de enredadera.
     Z("F", {
         divididas: { "Avenida Heroica Escuela Naval Militar": { camellon: 2.4, tipo: "pasto", arboles: 14 } },
-        ruta: { nombre: "Avenida Heroica Escuela Naval Militar", s: -8 },
+        ruta: { nombre: "Avenida Heroica Escuela Naval Militar", s: 4 },
         calles: { "Andador Nayarit": { ancho: 5.4, banqueta: 1.2, estacionados: true } },
         pisos2: 0.45, locales: 0.4,
         especiales: [
-            { en: [25, 3], op: { pisos: 2, color: "#3d6fb0", colorAlto: "#f2f2ef", planta: ["cortina", "cortina", "puerta"], letrero: { x: 0.6, ancho: 6, texto: "ABARROTES", color: "#ffffff", fondo: "#d4262b" } } },
+            { en: [25, 3], op: { rotulo: "Abarrotes", pisos: 2, color: "#3d6fb0", colorAlto: "#f2f2ef", planta: ["cortina", "cortina", "puerta"], letrero: { x: 0.6, ancho: 6, texto: "ABARROTES", color: "#ffffff", fondo: "#d4262b" } } },
             { en: [-20, 15], op: { pisos: 1, color: "#557a33", techo: "teja", planta: ["ventana", "puerta", "ventana"] } },
             { en: [-24, 18], op: { pisos: 1, color: "#557a33", techo: "teja" } },
-            { nombre: "Mercado Hidalgo", op: { tipo: "comercio", alto: 8, color: "#e8dcc4", colorPretil: "#2f6f3e", vanos: 0.4, letrero: { texto: "MERCADO HIDALGO", fondo: "#2f6f3e", ancho: 9, alto: 1.3 } } },
+            { nombre: "Mercado Hidalgo", op: { rotulo: "Mercado Hidalgo", tipo: "comercio", alto: 8, color: "#e8dcc4", colorPretil: "#2f6f3e", vanos: 0.4, letrero: { texto: "MERCADO HIDALGO", fondo: "#2f6f3e", ancho: 9, alto: 1.3 } } },
             { nombre: "Funeraria San Miguel", op: { tipo: "comercio", alto: 6.5, color: "#f2efe8", colorPretil: "#3b2f5c", vanos: 0.5 } },
             { nombre: "El Escorial", op: { tipo: "comercio", alto: 9, color: "#f3e3c3", colorPretil: "#a0522d", vanos: 0.55 } }
         ],
@@ -279,20 +304,18 @@
     // con un talud de piedra bola. Enfrente, los edificios de departamentos de cuatro pisos.
     Z("G", {
         divididas: { "Prolongación Tulipanes": { camellon: 4.6, tipo: "pasto", arboles: 10 } },
-        ruta: { nombre: "Prolongación Tulipanes", s: 0 },
+        ruta: { nombre: "Prolongación Tulipanes", s: 0, explanada: 2.7 }, // la explanada llega hasta la barda de Soriana
         calles: { "Prolongación Tulipanes": { banqueta: 2.2 } },
         especiales: [
-            { nombre: "Mercado Soriana", op: { tipo: "nave", alto: 10, color: "#d6d8d6", colorPretil: "#d71e28", vanos: 0.02 } },
-            { nombre: "Coppel", op: { tipo: "comercio", alto: 9, color: "#f3f3f0", colorPretil: "#1a3f8f", vanos: 0.15, letrero: { texto: "COPPEL", fondo: "#ffd200", color: "#1a3f8f", ancho: 7, alto: 1.4 } } }
+            { nombre: "Mercado Soriana", op: { rotulo: "Soriana Mercado", tipo: "nave", alto: 10, color: "#d6d8d6", colorPretil: "#d71e28", vanos: 0.02 } },
+            { nombre: "Coppel", op: { rotulo: "Coppel", tipo: "comercio", alto: 9, color: "#f3f3f0", colorPretil: "#1a3f8f", vanos: 0.15, letrero: { texto: "COPPEL", fondo: "#ffd200", color: "#1a3f8f", ancho: 7, alto: 1.4 } } }
         ],
         extra(ctx) {
             const { N, porId, mat, kit, THREE } = ctx;
             const r = porId("ruta");
             // talud de piedra bola entre la banqueta y la barda de Soriana
             const piedra = mat(0xffffff, { map: kit.texPiedra(), roughness: 1 });
-            const L = [];
-            for (let s = -60; s <= 70; s += 2) { const p = N(s, 0); L.push({ x: p.x, y: p.y }); }
-            kit.franja(L, r.mitad + r.banq, r.mitad + r.banq + 2.6, 0, 0.35, piedra, piedra, 3);
+            fueraParada(ctx, -60, 70).forEach(([a, b]) => kit.franja(ctx.tramoRuta(a, b, 1), r.mitad + r.banq, r.mitad + r.banq + 2.6, 0, 0.35, piedra, piedra, 3));
             // ladrillo y franja roja al pie de la nave (lado de la calle)
             const ladrillo = mat(0xffffff, { map: kit.texMuro("#8a5a44", "ladrillo"), roughness: 0.95 });
             bardaCalle(ctx, -48, 62, r.mitad + r.banq + 2.75, 3.6, ladrillo, 0.12);
@@ -315,13 +338,15 @@
     // roja de refrescos, un edificio de cristal azul y casas de tres pisos.
     Z("I", {
         divididas: { "Avenida Melchor Ocampo": { camellon: 3.2, tipo: "concreto", arboles: 9 } },
-        ruta: { nombre: "Avenida Melchor Ocampo", s: 0, calle: { ciclovia: 1.7 } },
+        ruta: { nombre: "Avenida Melchor Ocampo", s: -8, calle: { ciclovia: 1.7 } },
+        // vista desde la avenida: la caseta, la fonda y la esquina con Valle del Yaqui
+        inicio: [-24, -15, 15], objetivo: [8, 4, 1.5],
         pisos2: 0.45, locales: 0.35,
         especiales: [
             { en: [2, 12], op: { pisos: 1, color: "#f4f1ea", planta: ["cortina", "puerta"] } },
             { en: [-27, 8], op: { pisos: 2, color: "#f2f2ef", colorAlto: "#e9e7e1", planta: ["porton", "porton"], colorPorton: "#6b4a33" } },
             { en: [-60, 14], op: { pisos: 1, color: "#d98a6c" } },
-            { en: [0, -35], op: { tipo: "comercio", alto: 7, color: "#c8102e", colorPretil: "#a00d24", vanos: 0.3, letrero: { texto: "MERZA", fondo: "#ffffff", color: "#c8102e", ancho: 5, alto: 1 } } },
+            { en: [0, -35], op: { rotulo: "Merza", tipo: "comercio", alto: 7, color: "#c8102e", colorPretil: "#a00d24", vanos: 0.3, letrero: { texto: "MERZA", fondo: "#ffffff", color: "#c8102e", ancho: 5, alto: 1 } } },
             { en: [-45, -35], op: { tipo: "comercio", alto: 7.5, color: "#2b4a7a", colorPretil: "#1f2f4c", vidrio: "#7ea3c4", vanos: 0.85 } },
             { en: [28, -40], op: { pisos: 3, color: "#f1d4b3", colorAlto: "#f6e7d3", balaustrada: true } }
         ],
@@ -330,10 +355,12 @@
             const r = porId("ruta");
             const d0 = r.mitad + r.ciclovia + r.banq;
             // fonda La Papaya: toldo naranja, letrero y mesas en la banqueta
-            const p = N(10, d0 - 1.2);
-            kit.caja(9, 3, 0.08, p.x, p.y, 2.55, p.ang, mat(0xe8742a, { roughness: 0.6 }));
-            letrero(ctx, 10, d0 - 2.6, 2.9, 4, 0.6, "La Papaya", "#e8742a", "#ffffff", Math.PI);
-            mesas(ctx, 6.5, d0 - 1.4, 5, 0xd8312b);
+            // (la fonda va entre la caseta y la esquina con la calle Valle del Yaqui)
+            const p = N(2, d0 - 1.2);
+            kit.caja(6.5, 3, 0.08, p.x, p.y, 2.55, p.ang, mat(0xe8742a, { roughness: 0.6 }));
+            letrero(ctx, 2, d0 - 2.6, 2.9, 4, 0.6, "La Papaya", "#e8742a", "#ffffff", Math.PI);
+            ctx.rotulo("Fonda La Papaya", 2, d0 + 1, 5.5);
+            mesas(ctx, -0.5, d0 - 1.4, 3, 0xd8312b);
             // bolardos de la ciclovía y caseta rosa de vigilancia en la esquina
             for (let s = -30; s < -12; s += 2) { const q = N(s, r.mitad + 0.1); kit.cilindro(0.08, 0.08, 0.8, q.x, q.y, 0, mat(0x222222), 8); }
             const c = N(-24, d0 + 1.5);

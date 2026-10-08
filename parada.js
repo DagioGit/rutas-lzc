@@ -116,6 +116,16 @@
         const est = estadoDe(s);
         document.body.dataset.estado = est.clase;
         elEstado.textContent = est.texto;
+        const e = H.estado(parada.id);
+        if (e && !e.servicio) {
+            document.body.dataset.estado = "a-tiempo";
+            elEstado.textContent = "Sin servicio";
+            elTiempo.textContent = F.horaDia(e.llegada);
+            elUnidad.textContent = "primera combi (servicio de 6:00 a 22:00)";
+            elProgreso.style.transform = "scaleX(0)";
+            elDespues.innerHTML = "";
+            return;
+        }
         if (est.clase === "en-parada") {
             elTiempo.textContent = "Aborda";
             elUnidad.textContent = "la combi está en la parada";
@@ -181,7 +191,10 @@
 
     $("[data-leer]").addEventListener("click", () => {
         const s = H.segundosPara(parada.id);
-        const texto = H.enParada(parada.id)
+        const e = H.estado(parada.id);
+        const texto = e && !e.servicio
+            ? `Ruta 2 Pollo. Por ahora no hay servicio. La primera combi pasa por la ${parada.name} a las ${F.horaDia(e.llegada)}.`
+            : H.enParada(parada.id)
             ? `Ruta 2 Pollo. La combi está en la ${parada.name}. Puedes abordar.`
             : `Ruta 2 Pollo, ${parada.name}, ${F.calleCorta(parada.calle)}. La próxima combi llega en ${Math.max(1, Math.round(s / 60))} ${Math.round(s / 60) === 1 ? "minuto" : "minutos"}.`;
         hablar(texto);

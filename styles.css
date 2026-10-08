@@ -2621,6 +2621,19 @@ body.visor-abierto {
     color: var(--tinta);
 }
 
+.visor__llegada-tiempo {
+    margin: 2px 0 8px;
+    font-size: .9rem;
+    color: var(--tinta-suave, #5a6670);
+}
+
+.visor__llegada-tiempo strong {
+    font-size: 1.6rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--tinta);
+    margin-right: 2px;
+}
+
 .visor__grupo input[type="range"] {
     width: 100%;
     accent-color: var(--asfalto);
@@ -3781,4 +3794,19 @@ body.visor-abierto {
     position: absolute;
     left: 10px;
     top: 10px;
+}
+
+.visor__check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    font-size: .86rem;
+    cursor: pointer;
+}
+
+.visor__check input {
+    accent-color: var(--asfalto);
+    width: 16px;
+    height: 16px;
 }

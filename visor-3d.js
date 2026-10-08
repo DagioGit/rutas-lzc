@@ -41,6 +41,7 @@
     let camara = null;
     let controles = null;
     let escena = null;
+    let escenaRotulos = null; // los rótulos se dibujan aparte, encima de la imagen ya procesada
     let luz = null;
     let zonaActual = null;
     let abierto = false;
@@ -104,6 +105,16 @@
                 </label>
               </div>
 
+              <div class="visor__grupo visor__llegada" data-llegada-caja>
+                <span class="visor__etiqueta">Próxima combi <output data-llegada-modo></output></span>
+                <p class="visor__llegada-tiempo"><strong data-llegada-tiempo>—</strong> <span data-llegada-texto></span></p>
+                <div class="visor__horas">
+                  <button type="button" data-llegada-simular>Ver cómo llega</button>
+                  <button type="button" data-llegada-vivo hidden>Volver a la hora real</button>
+                </div>
+                <p class="visor__nota">El tótem, la lista de llegadas y el mapa usan el mismo horario: una combi cada 15 min, de 6:00 a 22:00.</p>
+              </div>
+
               <div class="visor__grupo">
                 <span class="visor__etiqueta">Hora del día <output data-hora-texto></output></span>
                 <input type="range" min="5" max="23" step="0.25" value="11" data-hora aria-label="Hora del día">
@@ -123,6 +134,7 @@
                   <button type="button" data-vista="calle">A pie de calle</button>
                   <button type="button" data-vista="aerea">Aérea</button>
                 </div>
+                <label class="visor__check"><input type="checkbox" data-rotulos checked> Mostrar nombres de calles y lugares</label>
               </div>
 
               <div class="visor__entorno" data-entorno-caja>
@@ -158,6 +170,13 @@
             hora: raiz.querySelector("[data-hora]"),
             horaTexto: raiz.querySelector("[data-hora-texto]"),
             botonesVista: [...raiz.querySelectorAll("[data-vista]")],
+            rotulos: raiz.querySelector("[data-rotulos]"),
+            llegadaCaja: raiz.querySelector("[data-llegada-caja]"),
+            llegadaTiempo: raiz.querySelector("[data-llegada-tiempo]"),
+            llegadaTexto: raiz.querySelector("[data-llegada-texto]"),
+            llegadaModo: raiz.querySelector("[data-llegada-modo]"),
+            llegadaSimular: raiz.querySelector("[data-llegada-simular]"),
+            llegadaVivo: raiz.querySelector("[data-llegada-vivo]"),
             grupoCaseta: raiz.querySelector("[data-grupo-caseta]"),
             vistaInicio: raiz.querySelector("[data-vista-inicio]")
         };
@@ -165,8 +184,19 @@
         raiz.querySelectorAll("[data-cerrar]").forEach(b => b.addEventListener("click", cerrar));
         document.addEventListener("keydown", e => { if (abierto && e.key === "Escape") cerrar(); });
         ui.botonesVista.forEach(b => b.addEventListener("click", () => irAVista(b.dataset.vista)));
+        ui.rotulos.addEventListener("change", () => { if (zonaActual && zonaActual.rotulos) zonaActual.rotulos.visible = ui.rotulos.checked; });
         ui.disenos.forEach(b => b.addEventListener("click", () => { config.diseno = b.dataset.diseno; config.acento = null; montarCaseta(); }));
         ui.acentos.forEach(b => b.addEventListener("click", () => { config.acento = b.dataset.acento; montarCaseta(); }));
+        // Adelanta el reloj (simulación) a 20 segundos de que llegue la combi a esta parada.
+        ui.llegadaSimular.addEventListener("click", () => {
+            const H = window.RutaHorario;
+            if (!H || !zonaActual) return;
+            const t = H.ahora();
+            const e = H.estado(zonaActual.opciones.parada.id, t);
+            if (!e) return;
+            H.simular(t + e.segundos - 20, 1);
+        });
+        ui.llegadaVivo.addEventListener("click", () => { if (window.RutaHorario) window.RutaHorario.enVivo(); });
         ui.hora.addEventListener("input", () => aplicarHora(parseFloat(ui.hora.value)));
         raiz.querySelectorAll("[data-hora-fija]").forEach(b => b.addEventListener("click", () => aplicarHora(parseFloat(b.dataset.horaFija))));
         ui.archivo.addEventListener("change", () => { if (ui.archivo.files[0]) cargarArchivoPropio(ui.archivo.files[0]); ui.archivo.value = ""; });
@@ -256,6 +286,8 @@
             ui.vistaInicio.textContent = zona.nombreInicio || "Caseta";
             await montarCaseta();
             montarContador(zona);
+            escenaRotulos.clear();
+            if (zona.rotulos) { escenaRotulos.add(zona.rotulos); zona.rotulos.visible = ui.rotulos.checked; }
             aplicarHora(config.hora);
             ajustarTamano();
             irAVista("inicio", true);
@@ -291,6 +323,7 @@
         renderer.toneMappingExposure = 1.05;
         ui.lienzo.prepend(renderer.domElement);
 
+        escenaRotulos = new THREE.Scene();
         escena = new THREE.Scene();
         escena.background = new THREE.Color(0xe6eef3);
         escena.fog = new THREE.Fog(0xe6eef3, 380, 900);
@@ -405,6 +438,14 @@
             if (dt > 0.06) posproceso.lentos++;
             if (posproceso.cuadros === 90 && posproceso.lentos > 60) posproceso = null;
         } else renderer.render(escena, camara);
+        if (escenaRotulos && escenaRotulos.children.length && escenaRotulos.children[0].visible) {
+            const ac = renderer.autoClear, tm = renderer.toneMapping;
+            renderer.autoClear = false;
+            renderer.toneMapping = THREE.NoToneMapping;
+            renderer.render(escenaRotulos, camara);
+            renderer.autoClear = ac;
+            renderer.toneMapping = tm;
+        }
     }
     // Las piezas fuera de la maqueta están recortadas: el pase de normales también.
     function recortarPosproceso(planos) {
@@ -518,16 +559,35 @@
         });
     }
 
+    let ultimoPanel = "";
+    function actualizarPanelLlegada(e) {
+        if (!ui || !ui.llegadaCaja) return;
+        const H = window.RutaHorario, F = window.Formato;
+        ui.llegadaCaja.hidden = !(zonaActual && zonaActual.caseta && e);
+        if (!e || !F) return;
+        const sim = H.modo() === "sim";
+        const tiempo = !e.servicio ? "Sin servicio" : e.enParada ? "En parada" : F.reloj(e.segundos);
+        const texto = !e.servicio ? `· primera combi ${F.horaDia(e.llegada)}` : e.enParada ? "· suben los pasajeros" : `min · llega ${F.horaDia(e.llegada)}`;
+        const clave = tiempo + texto + sim;
+        if (clave === ultimoPanel) return;
+        ultimoPanel = clave;
+        ui.llegadaTiempo.textContent = tiempo;
+        ui.llegadaTexto.textContent = texto;
+        ui.llegadaModo.textContent = sim ? `simulación · ${F.horaDia(H.ahora())}` : "en vivo";
+        ui.llegadaVivo.hidden = !sim;
+        ui.llegadaSimular.hidden = sim && e.segundos < 25;
+    }
+
     function cuadro(dt, ahora = performance.now()) {
         {
             if (zonaActual && zonaActual.animar) zonaActual.animar(dt, ahora / 1000);
-            if (zonaActual && zonaActual.contador) {
-                const l = zonaActual.llegada;
-                if (l) zonaActual.contador.actualizar(l.segundos, l.enParada);
-                else if (window.RutaHorario) zonaActual.contador.actualizar(window.RutaHorario.segundosPara(zonaActual.opciones.parada.id), false);
-            }
+            // tótem y panel: el mismo horario que la lista de llegadas y el mapa
+            const e = zonaActual && window.RutaHorario ? window.RutaHorario.estado(zonaActual.opciones.parada.id) : null;
+            if (zonaActual && zonaActual.contador) zonaActual.contador.actualizar(e);
+            actualizarPanelLlegada(e);
             if (vuelo) avanzarVuelo(ahora);
             controles.update();
+            escalarRotulos();
             renderizar(dt);
         }
     }
@@ -655,11 +715,134 @@
         return g;
     }
 
+    // ====================== Rótulos (nombres de calles y lugares) ======================
+    // Etiquetas que siempre miran a la cámara y se ven encima de todo, para que se entienda
+    // dónde está la parada: el lugar de referencia, las calles y la caseta.
+    // lista: [{ texto, x, y, z, tipo: "lugar" | "calle" | "parada" }]
+    const ESTILOS_ROTULO = {
+        lugar: { fondo: "#ffffff", tinta: "#111111", borde: "#111111", alto: 1, punta: true },
+        calle: { fondo: "#26333b", tinta: "#ffffff", borde: null, alto: 0.8, punta: false },
+        parada: { fondo: "#f2c200", tinta: "#111111", borde: "#111111", alto: 1.1, punta: true },
+        lejos: { fondo: "#eef1f3", tinta: "#33424d", borde: "#33424d", alto: 0.85, punta: false }
+    };
+    // Lugares cercanos de la parada (ruta-2.js): dentro de la maqueta se nombran donde están;
+    // fuera, se pone su nombre y los minutos a pie en la orilla de la maqueta, en su dirección.
+    function rotulosCercanos(parada, z, previos) {
+        if (!parada || !parada.cerca || !z.caseta || parada.lat == null) return [];
+        const sinAcentos = t => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+        const clave = t => sinAcentos(t).replace(/^(instituto|tec(nologico)?|parque|mercado|hotel|central|plaza|clinica|hospital)\s+(de\s+)?/, "").slice(0, 7);
+        const lim = z.lim || { minX: -120, maxX: 120, minY: -110, maxY: 110 };
+        const cosLat = Math.cos(parada.lat * Math.PI / 180);
+        const res = [];
+        let lejos = 0;
+        parada.cerca.slice().sort((a, b) => a.min - b.min).forEach(c => {
+            const nombre = c.nombre.replace(/\s*\(.*\)$/, "");
+            if (previos.concat(res).some(r => sinAcentos(r.texto).includes(clave(nombre)) || clave(r.texto) === clave(nombre))) return;
+            const dx = (c.lng - parada.lng) * 111320 * cosLat, dy = (c.lat - parada.lat) * 110574;
+            let x = z.caseta.x + dx, y = z.caseta.y + dy;
+            const m = 12;
+            if (x > lim.minX + m && x < lim.maxX - m && y > lim.minY + m && y < lim.maxY - m) {
+                res.push({ texto: nombre, x, y, z: 9, tipo: "lugar" });
+                return;
+            }
+            if (lejos >= 4) return;
+            // recorta la dirección contra la orilla de la maqueta
+            const tx = dx > 0 ? (lim.maxX - m - z.caseta.x) / dx : dx < 0 ? (lim.minX + m - z.caseta.x) / dx : Infinity;
+            const ty = dy > 0 ? (lim.maxY - m - z.caseta.y) / dy : dy < 0 ? (lim.minY + m - z.caseta.y) / dy : Infinity;
+            const t = Math.min(tx, ty, 1);
+            x = z.caseta.x + dx * t; y = z.caseta.y + dy * t;
+            res.push({ texto: `${nombre} · ${c.min} min a pie`, x, y, z: 3, tipo: "lejos" });
+            lejos++;
+        });
+        return res;
+    }
+    function crearRotulos(lista) {
+        const g = new THREE.Group();
+        g.name = "rotulos";
+        (lista || []).forEach(r => {
+            const e = ESTILOS_ROTULO[r.tipo] || ESTILOS_ROTULO.lugar;
+            const c = document.createElement("canvas");
+            const x = c.getContext("2d");
+            const fuente = `${r.tipo === "calle" ? 500 : 700} 44px "Helvetica Neue", Arial, sans-serif`;
+            x.font = fuente;
+            const ancho = Math.ceil(x.measureText(r.texto).width) + 52;
+            const altoCaja = 72, punta = e.punta ? 18 : 0;
+            c.width = ancho + 6; c.height = altoCaja + punta + 6;
+            x.font = fuente;
+            const radio = r.tipo === "calle" ? 10 : 36;
+            x.beginPath();
+            x.moveTo(3 + radio, 3); x.lineTo(3 + ancho - radio, 3); x.quadraticCurveTo(3 + ancho, 3, 3 + ancho, 3 + radio);
+            x.lineTo(3 + ancho, 3 + altoCaja - radio); x.quadraticCurveTo(3 + ancho, 3 + altoCaja, 3 + ancho - radio, 3 + altoCaja);
+            if (punta) { x.lineTo(3 + ancho / 2 + 14, 3 + altoCaja); x.lineTo(3 + ancho / 2, 3 + altoCaja + punta); x.lineTo(3 + ancho / 2 - 14, 3 + altoCaja); }
+            x.lineTo(3 + radio, 3 + altoCaja); x.quadraticCurveTo(3, 3 + altoCaja, 3, 3 + altoCaja - radio);
+            x.lineTo(3, 3 + radio); x.quadraticCurveTo(3, 3, 3 + radio, 3); x.closePath();
+            x.fillStyle = e.fondo; x.fill();
+            if (e.borde) { x.lineWidth = 4; x.strokeStyle = e.borde; x.stroke(); }
+            x.fillStyle = e.tinta; x.textAlign = "center"; x.textBaseline = "middle";
+            x.fillText(r.texto, 3 + ancho / 2, 3 + altoCaja / 2 + 2);
+            const tex = new THREE.CanvasTexture(c);
+            tex.colorSpace = THREE.SRGBColorSpace;
+            tex.anisotropy = 4;
+            // los nombres de calle se esconden detrás de los edificios; los de lugares se ven siempre
+            const m = new THREE.SpriteMaterial({ map: tex, depthTest: false, depthWrite: false, transparent: true, toneMapped: false });
+            const sp = new THREE.Sprite(m);
+            sp.center.set(0.5, 0);
+            sp.position.set(r.x, r.y, r.z == null ? 6 : r.z);
+            sp.renderOrder = 1000 + (r.tipo === "parada" ? 2 : r.tipo === "lugar" ? 1 : 0);
+            sp.userData = { aspecto: c.width / c.height, alto: e.alto, tipo: r.tipo, prioridad: { parada: 0, lugar: 1, lejos: 2, calle: 3 }[r.tipo] ?? 2 };
+            g.add(sp);
+        });
+        return g;
+    }
+    // Tamaño según la distancia, y cada pocos cuadros: se esconden los nombres de calle tapados
+    // por un edificio y los rótulos que se encimarían con otro más importante.
+    let cuadroRotulos = 0, rayo = null, ultimaCamRotulos = null;
+    function escalarRotulos() {
+        const g = zonaActual && zonaActual.rotulos;
+        if (!g || !g.visible) return;
+        g.children.forEach(sp => {
+            const d = camara.position.distanceTo(sp.position);
+            const h = Math.min(9, Math.max(0.7, d * 0.034)) * sp.userData.alto;
+            sp.scale.set(h * sp.userData.aspecto, h, 1);
+        });
+        // se recalcula cada 12 cuadros, cada 4 mientras la cámara se mueve, y de inmediato si brincó
+        const mov = ultimaCamRotulos ? ultimaCamRotulos.distanceTo(camara.position) : Infinity;
+        const n = cuadroRotulos++;
+        if (!(mov > 5 || n % 12 === 0 || (mov > 0.3 && n % 4 === 0))) return;
+        ultimaCamRotulos = camara.position.clone();
+        if (!rayo) rayo = new THREE.Raycaster();
+        const W = renderer.domElement.clientWidth || 1, Hh = renderer.domElement.clientHeight || 1;
+        const tanF = Math.tan((camara.fov * Math.PI) / 360);
+        const puestos = [];
+        g.children.slice().sort((a, b) => a.userData.prioridad - b.userData.prioridad).forEach(sp => {
+            const p = sp.position.clone().project(camara);
+            // de cerca (a pie de calle) el letrero de la caseta ya dice qué parada es
+            // (y los lugares lejanos se quitan para no taparla)
+            if ((sp.userData.tipo === "parada" || sp.userData.tipo === "lejos") && zonaActual.caseta && camara.position.distanceTo(zonaActual.caseta.position) < 16) { sp.visible = false; return; }
+            if (p.z > 1 || Math.abs(p.x) > 1.2 || Math.abs(p.y) > 1.2) { sp.visible = false; return; }
+            const d = camara.position.distanceTo(sp.position);
+            const hPx = (sp.scale.y / (2 * d * tanF)) * Hh, wPx = hPx * sp.userData.aspecto;
+            const x = (p.x + 1) / 2 * W, y = (1 - p.y) / 2 * Hh;
+            const caja = { x0: x - wPx / 2, x1: x + wPx / 2, y0: y - hPx, y1: y };
+            let ver = !puestos.some(o => caja.x0 < o.x1 && caja.x1 > o.x0 && caja.y0 < o.y1 && caja.y1 > o.y0);
+            if (ver && sp.userData.tipo === "calle") {
+                const dir = sp.position.clone().sub(camara.position).normalize();
+                rayo.set(camara.position, dir);
+                rayo.far = d - 1.5;
+                ver = rayo.intersectObject(zonaActual.grupo, true).length === 0;
+            }
+            sp.visible = ver;
+            if (ver) puestos.push(caja);
+        });
+    }
+
     // ====================== Maqueta detallada ======================
 
     async function construirZonaDetallada(opciones, crearZona) {
         const z = crearZona(THREE);
         const grupo = z.grupo;
+        const listaRotulos = (z.rotulos || []).concat(z.caseta ? [{ texto: opciones.parada.name || "Parada", x: z.caseta.x, y: z.caseta.y, z: 4.2, tipo: "parada" }] : []);
+        const rotulos = crearRotulos(listaRotulos.concat(rotulosCercanos(opciones.parada, z, listaRotulos)));
         const fuente = 'Maqueta elaborada a partir de Google Street View, imagen satelital y <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>. Proporciones aproximadas.';
 
         // Zonas sin caseta (la base): la maqueta trae su propia animación
@@ -667,7 +850,7 @@
             return {
                 opciones, grupo, caseta: null, sinDatos: false,
                 lim: z.lim, planos: z.planos, luces: z.luces || [], llegada: null,
-                animar: dt => z.animar(dt), vistas: z.vistas, entorno: z.entorno,
+                animar: dt => z.animar(dt), vistas: z.vistas, entorno: z.entorno, rotulos,
                 nombreInicio: z.nombreInicio, puntoLuz: z.puntoLuz, fuente
             };
         }
@@ -690,44 +873,41 @@
         // faros de la combi (se encienden de noche)
         const faros = combi.children.filter(o => o.isMesh && o.material.emissiveIntensity === 0.6).map(o => o.material);
 
-        // Llega, se detiene en la parada, suben pasajeros y sigue su camino.
+        // La combi sigue el horario de la ruta (horario.js): llega cuando el tótem marca 0:00,
+        // se queda en la parada lo que dura la espera, suben los pasajeros y se va.
         const { marco, carril, parar, desde, hasta } = z.combi;
         const v = 9;
-        const tramos = [
-            { fase: "llegando", de: desde, a: 0, dur: (-desde / v) * 1.25 },
-            { fase: "parada", pausa: 7, en: 0 },
-            { fase: "saliendo", de: 0, a: hasta, dur: (hasta / v) * 1.2 },
-            { fase: "fuera", pausa: 4, en: hasta }
-        ];
-        const ciclo = tramos.reduce((s, t) => s + (t.pausa || t.dur), 0);
-        let t = 0;
+        const durLlegada = (-desde / v) * 1.25, durSalida = (hasta / v) * 1.2;
         const fren = u => 1 - (1 - u) * (1 - u);
         const arranque = u => u * u;
-        const estado = { fase: "llegando", u: 0 };
-        const llegada = { segundos: null, enParada: false };
-        const animarCombi = dt => {
-            t = (t + dt) % ciclo;
-            let r = t, s = 0;
-            for (let i = 0; i < tramos.length; i++) {
-                const tr = tramos[i];
-                const dur = tr.pausa || tr.dur;
-                if (r < dur) {
-                    estado.fase = tr.fase;
-                    estado.u = r / dur;
-                    if (tr.pausa) s = tr.en;
-                    else s = tr.de + (tr.a - tr.de) * (i === 0 ? fren(r / dur) : arranque(r / dur));
-                    break;
-                }
-                r -= dur;
+        const estado = { fase: "fuera", u: 0, t: 0 };
+        const llegada = { segundos: null, enParada: false, servicio: true };
+        const idParada = opciones.parada.id;
+        const H = window.RutaHorario;
+        const animarCombi = () => {
+            const e = H ? H.estado(idParada) : null;
+            llegada.segundos = e ? e.segundos : null;
+            llegada.enParada = !!(e && e.enParada);
+            llegada.servicio = !e || e.servicio;
+            const espera = H ? H.espera : 60;
+            let s = null;
+            if (e && e.enParada) {
+                estado.fase = "parada"; estado.t = e.desde || 0; estado.u = estado.t / espera; s = 0;
+            } else if (e && e.segundos <= durLlegada) {
+                estado.fase = "llegando"; estado.t = durLlegada - e.segundos; estado.u = estado.t / durLlegada;
+                s = desde * (1 - fren(estado.u));
+            } else if (e && e.desde != null && e.desde - espera < durSalida) {
+                estado.fase = "saliendo"; estado.t = e.desde - espera; estado.u = estado.t / durSalida;
+                s = hasta * arranque(estado.u);
+            } else {
+                estado.fase = "fuera"; estado.u = 0;
             }
+            combi.visible = s != null;
+            if (s == null) return;
             const cerca = Math.max(0, 1 - Math.abs(s) / 22);
             const p = marco.en(s, carril + (parar - carril) * cerca * cerca * (3 - 2 * cerca));
             combi.position.set(p.x, p.y, 0);
             combi.rotation.z = p.ang;
-            // segundos para la siguiente llegada -> "minutos" en la pantalla de la caseta
-            const restante = estado.fase === "parada" ? 0 : (estado.fase === "llegando" ? tramos[0].dur - t : ciclo - t + tramos[0].dur);
-            llegada.segundos = restante;
-            llegada.enParada = estado.fase === "parada";
         };
 
         // Pasajeros
@@ -765,7 +945,7 @@
                     caminar(p, l, dt);
                     // mira hacia la calle mientras espera
                     if (p.obj.position.distanceTo(l) < 0.1) p.obj.rotation.z = caseta.rotation.z - Math.PI / 2;
-                    if (p.sube && estado.fase === "parada" && estado.u > 0.12 + i * 0.12) p.estado = "abordando";
+                    if (p.sube && estado.fase === "parada" && estado.t > 1.5 + i * 1.6) p.estado = "abordando";
                 } else if (p.estado === "abordando") {
                     if (caminar(p, puerta(), dt, 1.5)) { p.estado = "arriba"; p.obj.visible = false; }
                 } else if (p.estado === "arriba") {
@@ -788,6 +968,7 @@
             animar: dt => { z.animar(dt); animarCombi(dt); animarPasajeros(dt); },
             vistas: z.vistas,
             entorno: z.entorno,
+            rotulos,
             fuente: 'Maqueta elaborada a partir de Google Street View y de <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>. Proporciones aproximadas.'
         };
     }

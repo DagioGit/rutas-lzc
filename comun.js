@@ -41,9 +41,10 @@
     window.actualizarLlegadas = function () {
         if (!R || !H) return;
         R.paradas.forEach(p => {
-            const s = H.segundosPara(p.id);
-            const llegando = H.enParada(p.id);
-            const texto = s == null ? "—" : llegando ? "En parada" : F.reloj(s);
+            const e = H.estado(p.id);
+            const llegando = !!(e && e.enParada);
+            // fuera de servicio (22:00 a 6:00) se muestra la hora de la primera combi
+            const texto = !e ? "—" : !e.servicio ? `${F.horaDia(e.llegada)}` : llegando ? "En parada" : F.reloj(e.segundos);
             document.querySelectorAll(`[data-eta="${p.id}"]`).forEach(el => { el.textContent = texto; });
             document.querySelectorAll(`[data-fila="${p.id}"], [data-eta-caja="${p.id}"]`).forEach(el => el.classList.toggle("is-llegando", llegando));
         });

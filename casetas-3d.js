@@ -392,10 +392,31 @@
         });
 
         let ultimo = "";
-        function dibujar(segundos, enParada) {
-            const texto = enParada ? "EN PARADA" : segundos == null ? "--:--" : `${Math.floor(segundos / 60)}:${String(Math.max(0, Math.floor(segundos % 60))).padStart(2, "0")}`;
-            if (texto === ultimo) return;
-            ultimo = texto;
+        const hhmm = t => { const m = Math.floor(t / 60) % 1440; return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`; };
+        // e = estado de la parada en horario.js: { segundos, enParada, servicio, llegada }
+        function dibujar(e) {
+            const segundos = e ? e.segundos : null, enParada = !!(e && e.enParada);
+            const sinServicio = !!(e && !e.servicio);
+            const texto = sinServicio ? "SIN SERVICIO" : enParada ? "EN PARADA" : segundos == null ? "--:--" : `${Math.floor(segundos / 60)}:${String(Math.max(0, Math.floor(segundos % 60))).padStart(2, "0")}`;
+            const clave = texto + (sinServicio ? hhmm(e.llegada) : "");
+            if (clave === ultimo) return;
+            ultimo = clave;
+            if (sinServicio) {
+                const x = c.getContext("2d"), w = c.width, h = c.height;
+                x.fillStyle = "#0c1419"; x.fillRect(0, 0, w, h);
+                x.fillStyle = "#f2c200"; x.beginPath(); x.arc(46, 48, 28, 0, Math.PI * 2); x.fill();
+                x.fillStyle = "#0c1419"; x.font = "bold 30px Arial"; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText("2", 46, 50);
+                x.textAlign = "left"; x.fillStyle = "#ffffff"; x.font = "bold 26px Arial"; x.fillText("Ruta 2", 86, 40);
+                x.fillStyle = "#8fa3ae"; x.font = "19px Arial"; x.fillText("Pollo", 86, 64);
+                x.fillStyle = "#24343d"; x.fillRect(18, 100, w - 36, 2);
+                x.fillStyle = "#e8734a"; x.font = "bold 36px Arial"; x.fillText("Sin servicio", 18, 160);
+                x.fillStyle = "#8fa3ae"; x.font = "21px Arial"; x.fillText("Primera combi", 18, 222);
+                x.fillStyle = "#f2c200"; x.font = "bold 64px Arial"; x.fillText(hhmm(e.llegada), 16, 280);
+                x.fillStyle = "#24343d"; x.fillRect(18, 350, w - 36, 2);
+                x.fillStyle = "#c9d4da"; x.font = "19px Arial"; x.fillText("Servicio 6:00 a 22:00", 18, 392);
+                tex.needsUpdate = true;
+                return;
+            }
             const x = c.getContext("2d"), w = c.width, h = c.height;
             x.fillStyle = "#0c1419"; x.fillRect(0, 0, w, h);
             x.fillStyle = "#f2c200"; x.beginPath(); x.arc(46, 48, 28, 0, Math.PI * 2); x.fill();
@@ -412,10 +433,10 @@
             x.fillText("lateral derecha", 18, enParada ? 316 : 999);
             x.fillStyle = "#24343d"; x.fillRect(18, 350, w - 36, 2);
             x.fillStyle = "#c9d4da"; x.font = "19px Arial";
-            x.fillText("Base → Centro → Base", 18, 392);
+            x.fillText(e && !enParada ? `Llega a las ${hhmm(e.llegada)}` : "Base → Centro → Base", 18, 392);
             tex.needsUpdate = true;
         }
-        dibujar(null, false);
+        dibujar(null);
         return { grupo: g, luces: [pantalla], actualizar: dibujar };
     }
 

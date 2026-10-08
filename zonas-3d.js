@@ -1188,6 +1188,8 @@
     }
 
     // ====================== ZONA A — Av. Melchor Ocampo, frente al Tecnológico ======================
+    const xy = p => ({ x: p.x, y: p.y });
+
     function zonaA(THREE) {
         // El origen del marco es el punto de referencia original (17.973986, -102.232124).
         // La parada quedó 64 m al poniente, junto a la barda blanca, a un lado de la
@@ -1648,6 +1650,11 @@
                 calle: { posicion: C(3, -7.4, 1.65), objetivo: C(-1, 12.5, 2.2) },
                 aerea: { posicion: new THREE.Vector3(PX - 95, -130, 125), objetivo: new THREE.Vector3(PX, 8, 0) }
             },
+            rotulos: [
+                { texto: "Instituto Tecnológico de Lázaro Cárdenas", ...xy(SP(10, 45)), z: 11, tipo: "lugar" },
+                { texto: "Entrada lateral del Tec", ...xy(SP(-12, 14)), z: 5.5, tipo: "lugar" },
+                { texto: "Av. Melchor Ocampo", ...xy(SP(24, 3)), z: 2.2, tipo: "calle" }
+            ],
             entorno: [
                 "Plancha de concreto pegada a la barda blanca del Instituto Tecnológico de Lázaro Cárdenas",
                 "Entrada lateral del Tec a 12 m al poniente: pórtico azul con escalones, rampa y torniquetes; acceso de autos con pluma y caseta de vigilancia",
@@ -1916,10 +1923,18 @@
             pasajeros: { marco: no, d: 6.0, puerta: 4.0 },
             animar: trafico,
             vistas: {
-                inicio: { posicion: C(-17, 24, 10), objetivo: C(1, 4, 1.4) },
+                inicio: { posicion: C(30, -32, 20), objetivo: C(-26, 30, 2) }, // desde enfrente: la caseta con la plaza y el McDonald's detrás
                 calle: { posicion: C(6, -5.6, 1.65), objetivo: C(-1, 9, 2.4) },
                 aerea: { posicion: new THREE.Vector3(-190, -110, 190), objetivo: new THREE.Vector3(20, 70, 0) }
             },
+            rotulos: [
+                { texto: "McDonald's", x: 20, y: 43, z: 9.5, tipo: "lugar" },
+                { texto: "Plaza Las Américas", x: 40, y: 165, z: 11, tipo: "lugar" },
+                { texto: "Walmart Supercenter", x: 92, y: 238, z: 14, tipo: "lugar" },
+                { texto: "Sam's Club", x: -118, y: 100, z: 13, tipo: "lugar" },
+                { texto: "Fracc. Marina 3", x: 36, y: -8, z: 5, tipo: "lugar" },
+                { texto: "Av. Belisario Domínguez", ...xy(N(26, 0)), z: 2.2, tipo: "calle" }
+            ],
             entorno: [
                 "Banqueta con franja de pasto y guarnición amarilla del lado de la plaza",
                 "Estacionamiento de la plaza comercial con luminarias e isletas",

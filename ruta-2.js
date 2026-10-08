@@ -185,7 +185,7 @@ window.RUTA_2 = {
             lat: 17.96384,
             lng: -102.195897,
             calle: "Av. Heroica Escuela Naval Militar, carril hacia el poniente",
-            referencia: "En la esquina con el Andador Nayarit, a un minuto del Parque Tierra Caliente y a tres del Mercado Hidalgo",
+            referencia: "A unos pasos de la esquina con el Andador Nayarit (sin tapar el cruce), a un minuto del Parque Tierra Caliente y a tres del Mercado Hidalgo",
             texto: "El corazón del centro: mercado, Palacio Municipal, Protección Civil, COCOTRA y el Hospital del IMSS a menos de siete minutos.",
             desc: "La parada con más destinos: compras, trámites municipales y el hospital general del IMSS.",
             propuesta: true, // true: ubicación elegida en gabinete, falta visitarla
