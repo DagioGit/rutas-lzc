@@ -798,7 +798,7 @@ figcaption {
 .tabla--red td.lugares { white-space: normal; text-align: left; font-size: 6.9pt; line-height: 1.35; color: var(--gris); }
 .tabla--red td.lugares i { font-style: normal; font-family: var(--f-mono); font-size: 6pt; color: var(--gris-claro); }
 .tabla--red thead th:last-child { text-align: left; }
-.plano-ruta--chico svg { max-height: 3.4in; }
+.plano-ruta--chico svg { max-height: 3.05in; }
 
 .fuentes { margin: 4pt 0 0 12pt; font-size: 6.8pt; line-height: 1.45; color: var(--gris); }
 .fuentes span { font-family: var(--f-mono); font-size: 6pt; color: var(--gris-claro); word-break: break-all; }
@@ -815,3 +815,7 @@ figcaption {
 .tabla--red td:nth-child(4) { padding-right: 8pt; }
 .tabla--red thead th:nth-child(4) { text-align: right; padding-right: 8pt; }
 .subtitulo sup { font-size: 70%; }
+.miniaturas { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5pt; margin-top: 10pt; }
+.miniaturas img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 3pt; display: block; }
+.miniaturas figcaption { margin-top: 2pt; font-size: 5.6pt; letter-spacing: .02em; text-transform: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.miniaturas figcaption b { display: inline-grid; place-items: center; width: 8pt; height: 8pt; border-radius: 2pt; background: var(--amarillo); color: var(--tinta); font-size: 5pt; }

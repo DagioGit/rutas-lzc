@@ -65,10 +65,18 @@ window.RUTA_2 = {
             lat: 17.971609,
             lng: -102.22358,
             calle: "Av. Melchor Ocampo, carril hacia el sureste",
-            referencia: "Junto a la Clínica Fátima; la Unidad de Medicina Familiar 78 del IMSS a cuatro minutos",
-            texto: "Tramo de Av. Melchor Ocampo con clínicas, laboratorios y farmacias. La caseta da sombra a quien sale de consulta y a los adultos mayores de la Casa del Anciano.",
+            referencia: "Frente a la Clínica Fátima, del otro lado del camellón; la UMF 78 del IMSS a cuatro minutos",
+            texto: "Tramo de Av. Melchor Ocampo con clínicas, laboratorios y farmacias. Del otro lado del camellón queda la Clínica Fátima. La caseta da sombra a quien sale de consulta y a los adultos mayores de la Casa del Anciano.",
             desc: "Zona de salud: clínica, IMSS UMF 78, centro médico y laboratorios en menos de ocho minutos a pie.",
             propuesta: true, // true: ubicación elegida en gabinete, falta visitarla
+            maqueta: "img/parada-b.jpg", // maqueta 3D (zonas-fichas.js)
+            entorno: [
+                "Av. Melchor Ocampo dividida por un camellón de concreto con guarnición amarilla y árboles jóvenes",
+                "Clínica Fátima enfrente: tres pisos, columnas azul marino y Farmacia Fátima 24 horas",
+                "Locales con techo de lámina y casas de dos pisos del lado de la parada",
+                "Cruce con Av. Francisco Zarco a unos pasos, hacia el norte",
+                "Palmas y autos estacionados frente a la clínica"
+            ],
             cerca: [
                 { nombre: "Clínica Fátima", tipo: "salud", min: 1, lat: 17.97189, lng: -102.223494 },
                 { nombre: "IMSS UMF 78", tipo: "salud", min: 4, lat: 17.973626, lng: -102.224592 },
@@ -87,10 +95,18 @@ window.RUTA_2 = {
             lat: 17.968166,
             lng: -102.209344,
             calle: "Av. Autonomía Universitaria, carril hacia el oriente",
-            referencia: "Frente a la oficina de atención y pago de CFE",
-            texto: "Sobre Av. Autonomía Universitaria, en el 2.º sector de Fidelac. Mucha gente viene a pagar la luz y hay tres escuelas en la misma cuadra.",
+            referencia: "Junto a la barda de la subestación eléctrica de la CFE; la oficina de atención y pago a un minuto",
+            texto: "Sobre Av. Autonomía Universitaria, en el 2.º sector de Fidelac. La caseta queda en la banqueta ancha de la subestación de la CFE; mucha gente viene a pagar la luz y hay tres escuelas en la misma cuadra.",
             desc: "Trámites y escuelas: CFE, CECATI 70, Preparatoria Enrique Ramírez, Secundaria Técnica 110 y el CAM.",
             propuesta: true, // true: ubicación elegida en gabinete, falta visitarla
+            maqueta: "img/parada-c.jpg", // maqueta 3D (zonas-fichas.js)
+            entorno: [
+                "Barda gris de la subestación eléctrica de la CFE a todo lo largo de la banqueta",
+                "Letrero verde de la CFE y estructuras de acero de la subestación detrás de la barda",
+                "Banqueta ancha de concreto con guarnición amarilla",
+                "Camellón ancho de pasto con árboles grandes",
+                "Enfrente, terrenos abiertos con una torre de alta tensión y bodegas al fondo"
+            ],
             cerca: [
                 { nombre: "CFE · atención y pago", tipo: "trámite", min: 1, lat: 17.96818, lng: -102.209653 },
                 { nombre: "CAM Educación Especial", tipo: "escuela", min: 3, lat: 17.968487, lng: -102.207728 },
@@ -109,10 +125,18 @@ window.RUTA_2 = {
             lat: 17.961366,
             lng: -102.203275,
             calle: "Av. Melchor Ocampo, carril hacia el oriente",
-            referencia: "Junto al Tec de Monterrey; el ISSSTE y Bodega Aurrera a pocos pasos",
+            referencia: "Frente a la agencia Honda, junto al Tec de Monterrey; Bodega Aurrera enfrente",
             texto: "Llegada al centro por Av. Melchor Ocampo: universidad, colegio, supermercado, parque y la clínica del ISSSTE en un radio de cinco minutos.",
             desc: "Nodo de estudiantes, derechohabientes del ISSSTE y compras de todos los días.",
             propuesta: true, // true: ubicación elegida en gabinete, falta visitarla
+            maqueta: "img/parada-d.jpg", // maqueta 3D (zonas-fichas.js)
+            entorno: [
+                "Av. Melchor Ocampo con camellón ancho de primaveras, palmas y guarnición amarilla",
+                "Del lado de la parada: agencia Honda, locales de un piso y el Tec de Monterrey (edificio blanco con franja naranja)",
+                "Enfrente: Bodega Aurrera con su estacionamiento y el Parque Erandeni",
+                "Autos estacionados en batería frente a los locales y autobuses de Estrella de Oro",
+                "Glorieta General Paúl González al poniente"
+            ],
             cerca: [
                 { nombre: "Tec de Monterrey", tipo: "escuela", min: 1, lat: 17.961248, lng: -102.203697 },
                 { nombre: "Instituto Rector Hidalgo", tipo: "escuela", min: 2, lat: 17.960683, lng: -102.202401 },
@@ -131,10 +155,18 @@ window.RUTA_2 = {
             lat: 17.957662,
             lng: -102.196765,
             calle: "Calle Mariano Matamoros, carril hacia el sureste",
-            referencia: "A cuatro minutos de la Central Estrella de Oro y de Plaza Zirahuén",
+            referencia: "Junto a la barda del Hotel Sol del Pacífico; la Central Estrella de Oro a cuatro minutos",
             texto: "Conexión con los autobuses foráneos: quien llega a la central encuentra aquí la combi. Cerca están Plaza Zirahuén, escuelas y la Unidad Deportiva.",
             desc: "Transbordo con autobuses foráneos y acceso a la Unidad Deportiva.",
             propuesta: true, // true: ubicación elegida en gabinete, falta visitarla
+            maqueta: "img/parada-e.jpg", // maqueta 3D (zonas-fichas.js)
+            entorno: [
+                "Calle Mariano Matamoros, angosta y de un solo sentido, por donde bajan las combis",
+                "Barda crema del Hotel Sol del Pacífico con plantas del lado de la parada",
+                "Enfrente, barda de ladrillo aparente de un terreno con zacate",
+                "Al fondo, la calle General Mina con palmas, grúas y locales",
+                "La Central Estrella de Oro y Plaza Zirahuén a cuatro minutos a pie"
+            ],
             cerca: [
                 { nombre: "Central Estrella de Oro", tipo: "transporte", min: 4, lat: 17.956068, lng: -102.197778 },
                 { nombre: "Plaza Zirahuén", tipo: "compras", min: 4, lat: 17.959792, lng: -102.196201 },
@@ -153,10 +185,18 @@ window.RUTA_2 = {
             lat: 17.96384,
             lng: -102.195897,
             calle: "Av. Heroica Escuela Naval Militar, carril hacia el poniente",
-            referencia: "Junto al Parque Tierra Caliente, a tres minutos del Mercado Hidalgo",
+            referencia: "En la esquina con el Andador Nayarit, a un minuto del Parque Tierra Caliente y a tres del Mercado Hidalgo",
             texto: "El corazón del centro: mercado, Palacio Municipal, Protección Civil, COCOTRA y el Hospital del IMSS a menos de siete minutos.",
             desc: "La parada con más destinos: compras, trámites municipales y el hospital general del IMSS.",
             propuesta: true, // true: ubicación elegida en gabinete, falta visitarla
+            maqueta: "img/parada-f.jpg", // maqueta 3D (zonas-fichas.js)
+            entorno: [
+                "Av. Heroica Escuela Naval Militar en el centro, con dos sentidos y camellón angosto",
+                "Tienda de abarrotes azul de dos pisos en la esquina con el Andador Nayarit",
+                "Casa cubierta de enredadera con techo de teja junto a la parada",
+                "Enfrente, locales de dos pisos y árboles grandes",
+                "Parque Tierra Caliente a un minuto y Mercado Hidalgo a tres"
+            ],
             cerca: [
                 { nombre: "Parque Tierra Caliente", tipo: "parque", min: 1, lat: 17.964515, lng: -102.195628 },
                 { nombre: "Mercado Hidalgo", tipo: "compras", min: 3, lat: 17.963013, lng: -102.194843 },
@@ -175,10 +215,18 @@ window.RUTA_2 = {
             lat: 17.970361,
             lng: -102.211385,
             calle: "Prol. Tulipanes, carril hacia el nororiente",
-            referencia: "Frente a Soriana Mercado y Coppel",
+            referencia: "Junto a la barda lateral de Soriana Mercado; Coppel en el mismo estacionamiento",
             texto: "De regreso del centro, en Prol. Tulipanes: supermercado y tiendas; el Hospital Naval y el CECATI a cinco minutos.",
             desc: "Compras de la semana y conexión con el Hospital Naval.",
             propuesta: true, // true: ubicación elegida en gabinete, falta visitarla
+            maqueta: "img/parada-g.jpg", // maqueta 3D (zonas-fichas.js)
+            entorno: [
+                "Prolongación Tulipanes dividida por un camellón de pasto con árboles jóvenes",
+                "Barda lateral de Soriana Mercado: ladrillo, franja roja y lámina gris, con talud de piedra bola",
+                "Coppel junto a Soriana, sobre el mismo estacionamiento",
+                "Enfrente, edificios de departamentos de cuatro pisos con jardineras azules",
+                "Tráileres y autos que van hacia la Av. Autonomía Universitaria"
+            ],
             cerca: [
                 { nombre: "Soriana Mercado", tipo: "compras", min: 1, lat: 17.970053, lng: -102.211207 },
                 { nombre: "Coppel", tipo: "compras", min: 2, lat: 17.969758, lng: -102.210503 },
@@ -225,10 +273,18 @@ window.RUTA_2 = {
             lat: 17.974054,
             lng: -102.228038,
             calle: "Av. Melchor Ocampo, carril hacia el poniente",
-            referencia: "Frente a Merza, en la colonia Valle del Tecnológico",
+            referencia: "Junto a la fonda La Papaya, frente a la tienda Merza, en la colonia Valle del Tecnológico",
             texto: "Última parada antes de volver a la base, sobre Av. Melchor Ocampo de regreso: supermercado, colegio y dos bachilleratos.",
             desc: "Regreso de estudiantes y compras de la colonia antes de llegar a la base.",
             propuesta: true, // true: ubicación elegida en gabinete, falta visitarla
+            maqueta: "img/parada-i.jpg", // maqueta 3D (zonas-fichas.js)
+            entorno: [
+                "Av. Melchor Ocampo con camellón angosto de concreto, árboles jóvenes y guarnición amarilla",
+                "Ciclovía verde con bolardos del lado de la parada, la misma que llega al Tec",
+                "Fonda «La Papaya» con toldo naranja, mesas y sillas de plástico junto a la parada",
+                "Casas de dos pisos con portones, y una caseta rosa en la esquina",
+                "Enfrente, tienda roja de refrescos, edificio de cristal azul y casas de tres pisos"
+            ],
             cerca: [
                 { nombre: "Merza", tipo: "compras", min: 2, lat: 17.974249, lng: -102.226818 },
                 { nombre: "Colegio Anglo Mexicano", tipo: "escuela", min: 3, lat: 17.975276, lng: -102.226951 },

@@ -26,7 +26,8 @@ Es un sitio estático (HTML, CSS y JavaScript, sin compilar).
 | Base, paradas, recorrido y calles de la ruta | `ruta-2.js` |
 | Frecuencia y velocidad | `horario.js` |
 | Mapa y simulación del día | `map.js` |
-| Maquetas 3D de la base y las paradas | `zonas-3d.js` |
+| Maquetas 3D de la base, la A y la H | `zonas-3d.js` |
+| Maquetas 3D de B a G e I (datos de OSM + detalles de Street View) | `zonas-datos.js`, `zonas-fichas.js`, `zonas-paradas.js` |
 | Combi y caseta en 3D | `modelos-3d.js`, `casetas-3d.js` |
 | Precios y módulos de la caseta | `presupuesto.js` (la página y la ficha se recalculan solas) |
 | Modelo de la caseta | `modelos/caseta-lzc.glb` (de SketchUp) → `python3 herramientas/glb_a_js.py` |

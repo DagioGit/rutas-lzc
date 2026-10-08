@@ -179,6 +179,10 @@
         return `<tr><td class="letra"><b>${p.corto}</b></td><th>${p.apodo || p.name}${p.propuesta ? "" : " <i>✓</i>"}</th><td>${F.calleCorta(p.calle)}</td><td>${km.toFixed(1)}</td><td class="lugares">${lugares}</td></tr>`;
     }).join("");
 
+    const mini = $("[data-f-miniaturas]");
+    if (mini) mini.innerHTML = orden.filter(p => p.maqueta).map(p =>
+        `<figure><img src="${p.maqueta}" alt="Maqueta 3D de la ${p.name}"><figcaption><b>${p.corto}</b> ${p.apodo}</figcaption></figure>`).join("");
+
     // ---------- Numeración, índice y folios ----------
     const hojas = $$(".hoja");
     const N = hojas.length;

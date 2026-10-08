@@ -30,7 +30,14 @@ Páginas del sitio
     bajo los árboles, patio, cancha llanera, baldío de enfrente, torre de
     alta tensión y el Libramiento a Sicartsa. Una combi sale hacia el
     Libramiento y otra regresa y se mete de reversa.
-  - Parada A (Av. Melchor Ocampo) y Parada B (Av. Belisario Domínguez).
+  - Parada A (Av. Melchor Ocampo) y Parada H (Av. Belisario Domínguez).
+  - Paradas B, C, D, E, F, G e I: se arman con datos (zonas-paradas.js).
+    Las calles, edificios, áreas verdes y árboles salen de OpenStreetMap
+    (zonas-datos.js) y lo que se vio en Street View va en zonas-fichas.js:
+    camellones, bardas, edificios que se reconocen (Clínica Fátima, la
+    subestación de la CFE, Honda y el Tec de Monterrey, Hotel Sol del
+    Pacífico, la tienda azul del Andador Nayarit, Soriana, La Papaya),
+    colores y letreros. Para corregir una parada se edita su bloque Z("X").
 Casas y calles salen de OpenStreetMap; fachadas, colores, árboles y
 mobiliario de Google Street View (ago 2024) e imagen satelital.
 El visor tiene cielo con nubes, sombras y oclusión ambiental; en

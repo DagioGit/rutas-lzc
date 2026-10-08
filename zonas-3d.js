@@ -2410,4 +2410,6 @@
     }
 
     window.Zonas3D = { A: zonaA, H: zonaB, base: zonaBase }; // zonaB es la Parada H (Plaza Las Américas)
+    // Herramientas para las maquetas que se arman con datos (zonas-paradas.js)
+    window.Zonas3DKit = { crearKit, marcoCalle, crearTrafico, distanciaALinea, centro, areaPoligono };
 })();

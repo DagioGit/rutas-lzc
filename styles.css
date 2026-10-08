@@ -3753,3 +3753,32 @@ body.visor-abierto {
 .diagrama--denso .estacion--fin .estacion__nombre {
     margin-top: 24px;
 }
+
+/* Vista de la maqueta en las tarjetas de las paradas propuestas */
+.propuesta__vista {
+    position: relative;
+    display: block;
+    height: 190px;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    background: #dfe6ea;
+    cursor: pointer;
+}
+
+.propuesta__vista img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform .4s ease;
+}
+
+.propuesta__vista:hover img {
+    transform: scale(1.03);
+}
+
+.propuesta__vista .parada__sello {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+}

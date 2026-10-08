@@ -185,7 +185,9 @@ function fichaCompleta(p) {
 function fichaPropuesta(p) {
     return `
         <article class="propuesta" id="parada-${p.id}">
-            <div class="propuesta__mapa"><img src="img/mapas/mapa-${p.id.toLowerCase()}.png" alt="Mapa de la ${p.name} con los lugares cercanos" loading="lazy" width="640" height="1040"></div>
+            ${p.maqueta
+                ? `<button type="button" class="propuesta__vista" data-abrir-zona="${p.id}" aria-label="Ver la ${p.name} en 3D"><img src="${p.maqueta}" alt="Maqueta 3D de la ${p.name}: ${p.referencia}" loading="lazy" width="1600" height="1000"><span class="parada__sello mono-etiqueta">Maqueta 3D</span></button>`
+                : `<div class="propuesta__mapa"><img src="img/mapas/mapa-${p.id.toLowerCase()}.png" alt="Mapa de la ${p.name} con los lugares cercanos" loading="lazy" width="640" height="1040"></div>`}
             <div class="propuesta__cuerpo">
                 <h3><span class="parada__letra">${p.corto}</span>${p.apodo}<span class="propuesta__eta" data-eta="${p.id}">—</span></h3>
                 <p class="propuesta__calle">${F.calleCorta(p.calle)} · <span data-distancia="${p.id}">${textoDistancia(p.id)}</span> desde la base</p>
@@ -208,7 +210,7 @@ function construirFichas() {
         <div class="red-paradas">
             <div class="red-paradas__cabeza">
                 <h3>${propuestas.length} paradas propuestas</h3>
-                <p>Elegidas por lo que hay a cinco minutos a pie (datos de OpenStreetMap). Su vista 3D se arma sola con las calles y edificios de la zona; falta visitarlas para hacer su maqueta detallada.</p>
+                <p>Elegidas por lo que hay a cinco minutos a pie. Cada una tiene su maqueta 3D, hecha con Google Street View y las calles y edificios de OpenStreetMap; falta visitarlas en persona.</p>
             </div>
             ${propuestas.map(fichaPropuesta).join("")}
         </div>` : "");
