@@ -404,6 +404,31 @@
         return textura(THREE, 512, 512, (c, w, h) => dibujarSenal(c, w, h, colorCss));
     }
 
+    // Quita del modelo los triángulos que quedan completos dentro de una caja (en metros de la caseta).
+    // Se usa para borrar restos de los botes sueltos que traía el modelo de SketchUp.
+    function quitarZona(THREE, grupo, z) {
+        grupo.updateMatrixWorld(true);
+        const v = new THREE.Vector3();
+        const dentro = (pos, i, m) => {
+            v.fromBufferAttribute(pos, i).applyMatrix4(m);
+            return v.x >= z.x0 && v.x <= z.x1 && v.y >= z.y0 && v.y <= z.y1 && v.z >= z.z0 && v.z <= z.z1;
+        };
+        grupo.traverse(o => {
+            if (!o.isMesh || !o.geometry || !o.geometry.attributes.position) return;
+            const g = o.geometry, pos = g.attributes.position, m = o.matrixWorld;
+            const idx = g.index ? Array.from(g.index.array) : [...Array(pos.count).keys()];
+            const queda = [];
+            for (let i = 0; i < idx.length; i += 3) {
+                if (dentro(pos, idx[i], m) && dentro(pos, idx[i + 1], m) && dentro(pos, idx[i + 2], m)) continue;
+                queda.push(idx[i], idx[i + 1], idx[i + 2]);
+            }
+            if (queda.length === idx.length) return;
+            const nueva = g.clone();
+            nueva.setIndex(queda);
+            o.geometry = nueva;
+        });
+    }
+
     function lzc(THREE, { acento, parada }) {
         const plantilla = window.Casetas3D.plantillaLZC;
         if (!plantilla) return solar(THREE, { acento });
@@ -444,6 +469,7 @@
         g.add(grupo);
         // los botes sueltos del modelo se cambian por botes soldados junto a la banca
         grupo.traverse(o => { if (/Bote/i.test(o.name || "") || (o.material && /Bote/i.test(o.material.name || ""))) o.visible = false; });
+        quitarZona(THREE, grupo, { x0: 2.45, x1: 3.05, y0: -0.2, y1: 0.95, z0: -0.05, z1: 1.05 }); // aros y tapas de los botes viejos
         mobiliario(THREE, g, { xB0: -2.2, xB1: -1.78, cara: 1, xBanca: -3.95 });
         return {
             grupo: g, luces, alturaLuz: 2.55, techo: 2.62,
