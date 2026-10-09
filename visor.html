@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Parada en 3D · Rutas LZC</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Sólo la maqueta, a pantalla completa (para abrirse dentro de la app AppParadas) */
+        html, body { margin: 0; height: 100%; background: #e6eef3; overflow: hidden; }
+        .visor { padding: 0 !important; }
+        .visor__fondo, .visor__info, .visor__cerrar { display: none !important; }
+        .visor__ventana {
+            grid-template-columns: 1fr !important;
+            grid-template-rows: 1fr !important;
+            width: 100% !important; height: 100% !important;
+            border-radius: 0 !important; box-shadow: none !important;
+        }
+        .visor__pista { display: none !important; }
+    </style>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+</head>
+<body>
+    <script>
+        // ?zona=R1-4i&nombre=…&lat=…&lng=…&f=8&d=123  (paradas de la Ruta 1, desde la app)
+        // ?zona=A                                       (paradas de la Ruta 2 de la página)
+        const Q = new URLSearchParams(location.search);
+        const ZONA = Q.get("zona") || "A";
+        const DE_RUTA_2 = !/^R1-/.test(ZONA);
+        document.write(DE_RUTA_2
+            ? '<script src="ruta-2.js"><\/script><script src="horario.js"><\/script>'
+            : '<script src="horario-param.js"><\/script>');
+    </script>
+    <script src="modelos-3d.js"></script>
+    <script src="casetas-3d.js"></script>
+    <script src="caseta-lzc-modelo.js"></script>
+    <script src="map.js"></script>
+    <script src="zonas-3d.js"></script>
+    <script src="zonas-paradas.js"></script>
+    <script src="zonas-datos.js"></script>
+    <script src="zonas-fichas.js"></script>
+    <script src="zonas-datos-r1.js"></script>
+    <script src="zonas-fichas-r1.js"></script>
+    <script src="visor-3d.js"></script>
+    <script>
+        window.addEventListener("load", () => {
+            let parada;
+            if (DE_RUTA_2 && window.RUTA_2) {
+                parada = window.RUTA_2.paradas.find(p => p.id === ZONA) || window.RUTA_2.paradas[0];
+            } else {
+                parada = {
+                    id: ZONA,
+                    name: Q.get("nombre") || "Parada",
+                    calle: "Av. Lázaro Cárdenas",
+                    lat: parseFloat(Q.get("lat")) || 17.9623,
+                    lng: parseFloat(Q.get("lng")) || -102.1988
+                };
+            }
+            window.VisorZona.abrir({ parada, rutaGeo: [[parada.lng - 0.001, parada.lat], [parada.lng + 0.001, parada.lat]] });
+        });
+    </script>
+</body>
+</html>
