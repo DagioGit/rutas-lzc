@@ -10,6 +10,12 @@
 //  - actualizar: animaciones propias (por ejemplo, la pantalla de llegada).
 
 (function () {
+    // Datos de la ruta de la parada (la app los manda por la dirección; si no, Ruta 2 «Pollo»).
+    function infoRuta() {
+        const I = (window.RutaHorario && window.RutaHorario.info) || {};
+        return { numero: I.numero || "2", apodo: I.apodo || "Pollo", color: I.color || "#f2c200", servicio: I.servicio || "6:00 a 22:00" };
+    }
+
     const ACENTOS = {
         azul: 0x2e6c93,
         verde: 0x2f7d5b,
@@ -318,6 +324,17 @@
         return cacheTexturas;
     }
 
+    // Disco de la señal de parada con el número de la ruta ("R1" gris, "R2" amarillo).
+    function discoRuta(THREE) {
+        const R = infoRuta();
+        return textura(THREE, 256, 256, (c, w, h) => {
+            c.fillStyle = "#1d2a33"; c.fillRect(0, 0, w, h);
+            c.fillStyle = R.color; c.beginPath(); c.arc(w / 2, h / 2, w / 2 - 14, 0, Math.PI * 2); c.fill();
+            const claro = parseInt(R.color.slice(1, 3), 16) * 0.3 + parseInt(R.color.slice(3, 5), 16) * 0.59 + parseInt(R.color.slice(5, 7), 16) * 0.11 > 150;
+            c.fillStyle = claro ? "#1d2a33" : "#ffffff"; c.font = "bold 96px Arial"; c.textAlign = "center"; c.textBaseline = "middle"; c.fillText("R" + R.numero, w / 2, h / 2 + 4);
+        });
+    }
+
     function lzc(THREE, { acento, parada }) {
         const plantilla = window.Casetas3D.plantillaLZC;
         if (!plantilla) return solar(THREE, { acento });
@@ -342,7 +359,7 @@
             LZC_Letrero: std({ color: 0xffffff, map: letrero, emissive: 0xffffff, emissiveMap: letrero, emissiveIntensity: 0.1, roughness: 0.4 }),
             LZC_ISA: std({ color: 0xffffff, map: T.isa, roughness: 0.8 }),
             LZC_USB: std({ color: 0xffffff, map: T.usb, emissive: 0xffffff, emissiveMap: T.usb, emissiveIntensity: 0.1 }),
-            LZC_Disco: std({ color: 0xffffff, map: T.disco, roughness: 0.4 })
+            LZC_Disco: std({ color: 0xffffff, map: discoRuta(THREE), roughness: 0.4 })
         };
         // de noche: la tira LED brilla fuerte; mapa y letrero, retroiluminados más suaves
         luces.push(MATS.LZC_LED);
@@ -445,10 +462,7 @@
             g.add(m);
         });
 
-        const info = () => {
-            const I = (window.RutaHorario && window.RutaHorario.info) || {};
-            return { numero: I.numero || "2", apodo: I.apodo || "Pollo", color: I.color || "#f2c200", servicio: I.servicio || "6:00 a 22:00" };
-        };
+        const info = infoRuta;
         let ultimo = "";
         const hhmm = t => { const m = Math.floor(t / 60) % 1440; return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`; };
         // e = estado de la parada en horario.js: { segundos, enParada, servicio, llegada }

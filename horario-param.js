@@ -18,7 +18,32 @@
         const t = reloj.base + ((performance.now() - reloj.desde) / 1000) * reloj.velocidad;
         return ((t % DIA) + DIA) % DIA;
     }
+    // ?llegadas=36360_31,36840_28,… : llegadas exactas que calculó la app (segundo del día
+    // en que llega la combi _ segundos que se queda). Así la pantalla de la caseta dice lo mismo que la app.
+    const LISTA = (q.get("llegadas") || "").split(",").filter(Boolean).map(x => {
+        const [a, d] = x.split("_").map(Number);
+        return { a, d: d || ESPERA };
+    }).filter(x => isFinite(x.a)).sort((x, y) => x.a - y.a);
+    function estadoLista(t) {
+        // t puede ser de hoy; las llegadas de mañana vienen con +86400
+        let i = LISTA.findIndex(x => x.a + x.d > t);
+        if (i < 0) {
+            // ya pasaron todas: la primera de mañana (misma hora que la primera de la lista, +1 día)
+            const p = LISTA[0];
+            return { segundos: Math.max(0, p.a + DIA - t), enParada: false, desde: null, servicio: false, llegada: p.a % DIA };
+        }
+        const x = LISTA[i];
+        const anterior = i > 0 ? LISTA[i - 1].a : null;
+        return {
+            segundos: Math.max(0, x.a - t),
+            enParada: t >= x.a,
+            desde: anterior != null ? t - anterior : null,
+            servicio: x.a < DIA && t >= INICIO - 1800,
+            llegada: x.a % DIA
+        };
+    }
     function estado(id, t = ahora()) {
+        if (LISTA.length) return estadoLista(t);
         let j = Math.ceil((t - ESPERA - OFF - INICIO) / H);
         if (j < 0) j = 0;
         let llega = INICIO + j * H + OFF, manana = false;
