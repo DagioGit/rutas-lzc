@@ -34,9 +34,9 @@
         const Q = new URLSearchParams(location.search);
         const ZONA = Q.get("zona") || "A";
         const DE_RUTA_2 = !/^R1-/.test(ZONA);
-        document.write(DE_RUTA_2
-            ? '<script src="ruta-2.js"><\/script><script src="horario.js"><\/script>'
-            : '<script src="horario-param.js"><\/script>');
+        // Con ?d= (desde la app) se usa el horario que manda la app; si no, el de la página.
+        document.write((DE_RUTA_2 ? '<script src="ruta-2.js"><\/script>' : '') +
+            (Q.has("d") ? '<script src="horario-param.js"><\/script>' : '<script src="horario.js"><\/script>'));
     </script>
     <script src="modelos-3d.js"></script>
     <script src="casetas-3d.js"></script>
