@@ -19,7 +19,8 @@ window.PRESUPUESTO_CASETA = {
                 { concepto: "Malla electrosoldada y cimbra perimetral", cantidad: 1, unidad: "lote", pu: 1500, nota: "estimado" },
                 { concepto: "Loseta podotáctil amarilla (franja táctil)", cantidad: 2, unidad: "m²", pu: 900, nota: "estimado" },
                 { concepto: "Placas base y anclas para columnas", cantidad: 2, unidad: "juego", pu: 1000, nota: "estimado" },
-                { concepto: "Señalización del espacio para silla de ruedas", cantidad: 1, unidad: "lote", pu: 400, nota: "estimado" }
+                { concepto: "Señalización del espacio para silla de ruedas", cantidad: 1, unidad: "lote", pu: 400, nota: "estimado" },
+                { concepto: "Rampa de concreto para silla de ruedas (2.0 × 0.95 m) pintada con el símbolo de accesibilidad", cantidad: 1, unidad: "lote", pu: 1800, nota: "estimado" }
             ]
         },
         {
@@ -111,9 +112,18 @@ window.PRESUPUESTO_CASETA = {
         },
         {
             id: "basura", nombre: "Botes de basura separada", fijo: false,
-            desc: "Orgánico e inorgánico, de acero, junto a la caseta.",
+            desc: "Reciclable, orgánico e inorgánico, de acero, soldados a la caseta junto a la banca.",
             partidas: [
                 { concepto: "Bote doble de acero inoxidable (orgánico / inorgánico)", cantidad: 1, unidad: "pza", pu: 4000, fuente: "bote" }
+            ]
+        },
+        {
+            id: "voz", nombre: "Señalamiento por voz", fijo: false,
+            desc: "Botón con braille en la columna: al presionarlo, una bocina dice el nombre de la parada y en cuántos minutos llega la próxima combi. Para personas con discapacidad visual.",
+            partidas: [
+                { concepto: "Módulo de audio con bocina exterior IP65", cantidad: 1, unidad: "pza", pu: 1200, nota: "estimado" },
+                { concepto: "Botón pulsador antivandálico con placa en braille", cantidad: 1, unidad: "pza", pu: 650, nota: "estimado" },
+                { concepto: "Instalación y programación", cantidad: 1, unidad: "lote", pu: 500, nota: "estimado" }
             ]
         }
     ],
@@ -137,7 +147,8 @@ window.PRESUPUESTO_CASETA = {
             { equipo: "Tótem LED a dos caras (promedio)", watts: 32, horas: 18 },
             { equipo: "ESP32 con módem 4G", watts: 3, horas: 24 },
             { equipo: "Carga USB (uso estimado)", watts: 10, horas: 10 },
-            { equipo: "Mapa y letrero retroiluminados", watts: 12, horas: 12 }
+            { equipo: "Mapa y letrero retroiluminados", watts: 12, horas: 12 },
+            { equipo: "Bocina del señalamiento por voz (uso estimado)", watts: 10, horas: 1 }
         ],
         panelesW: 1100,       // 2 × 550 W
         horasSolPico: 5.5,    // costa de Michoacán, promedio anual aproximado

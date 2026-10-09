@@ -133,6 +133,7 @@
         [-1.4, -0.2, 1.0].forEach(x => k.caja(0.06, 0.45, 0.28, x, 0.55, 0.66, grafito));
         senal(THREE, k, -2.6, 0.95);
         mobiliario(THREE, k.g, { xB0: 1.12, xB1: 1.54, cara: -1, xBanca: -3.95, alto: 0.16 });
+        botonVoz(THREE, k.g, { x: -1.85, y: 0.83, z: 1.3 });
         return { grupo: k.g, luces: k.luces, alturaLuz: 2.6, techo: 2.8, actualizar() {} };
     }
 
@@ -471,11 +472,46 @@
         grupo.traverse(o => { if (/Bote/i.test(o.name || "") || (o.material && /Bote/i.test(o.material.name || ""))) o.visible = false; });
         quitarZona(THREE, grupo, { x0: 2.45, x1: 3.05, y0: -0.2, y1: 0.95, z0: -0.05, z1: 1.05 }); // aros y tapas de los botes viejos
         mobiliario(THREE, g, { xB0: -2.2, xB1: -1.78, cara: 1, xBanca: -3.95 });
+        botonVoz(THREE, g, { x: -1.95, y: 0.8, z: 1.3 });
         return {
             grupo: g, luces, alturaLuz: 2.55, techo: 2.62,
             noche(n) { suaves.forEach(m => { m.emissiveIntensity = 0.08 + 0.75 * n; }); },
             actualizar() {}
         };
+    }
+
+    // ---------- Señalamiento por voz: placa con botón, braille y bocina ----------
+    // Al presionar el botón amarillo, la bocina dice la parada y en cuánto llega la próxima combi.
+    // [x, y]: dónde va la placa (de frente a la calle, lado -y); [z]: altura del centro.
+    function botonVoz(THREE, g, { x, y, z = 1.25 }) {
+        const c = document.createElement("canvas"); c.width = 160; c.height = 280;
+        const k = c.getContext("2d");
+        k.fillStyle = "#1d2a33"; k.fillRect(0, 0, 160, 280);
+        k.strokeStyle = "#f2c200"; k.lineWidth = 6; k.strokeRect(5, 5, 150, 270);
+        // bocina (rejilla)
+        k.fillStyle = "#0e161b"; k.beginPath(); k.arc(80, 62, 40, 0, Math.PI * 2); k.fill();
+        k.fillStyle = "#3b4a54";
+        for (let i = -3; i <= 3; i++) for (let j = -3; j <= 3; j++) if (i * i + j * j <= 10) { k.beginPath(); k.arc(80 + i * 10, 62 + j * 10, 3, 0, Math.PI * 2); k.fill(); }
+        // ícono de bocina con ondas
+        k.fillStyle = "#ffffff"; k.font = "bold 22px Arial"; k.textAlign = "center"; k.textBaseline = "middle";
+        k.fillText("VOZ", 80, 124);
+        // braille ("voz") arriba del botón
+        k.fillStyle = "#c9d4da";
+        [[0, 0], [0, 1], [0, 2], [1, 1], [1, 2], [3, 0], [3, 2], [4, 1], [4, 2], [6, 0], [7, 2], [7, 0], [7, 1]].forEach(([i, j]) => { k.beginPath(); k.arc(48 + i * 9, 148 + j * 9, 3, 0, Math.PI * 2); k.fill(); });
+        // botón
+        k.fillStyle = "#f2c200"; k.beginPath(); k.arc(80, 214, 30, 0, Math.PI * 2); k.fill();
+        k.fillStyle = "#1d2a33"; k.font = "bold 13px Arial"; k.fillText("PRESIONE", 80, 258);
+        const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+        const placa = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.03, 0.28), new THREE.MeshStandardMaterial({ color: 0x1d2a33, roughness: 0.5 }));
+        placa.position.set(x, y - 0.015, z);
+        g.add(placa);
+        // cara con el dibujo, mirando a la calle (-y)
+        const frente = new THREE.Mesh(new THREE.PlaneGeometry(0.16, 0.28).rotateX(Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0xffffff, map: t, roughness: 0.4 }));
+        frente.position.set(x, y - 0.031, z);
+        g.add(frente);
+        const boton = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.02, 20), new THREE.MeshStandardMaterial({ color: 0xf2c200, roughness: 0.4 }));
+        boton.position.set(x, y - 0.035, z - 0.068);
+        g.add(boton);
     }
 
     // ---------- Mobiliario: botes de basura soldados junto a la banca, rampa y banca exterior ----------
@@ -638,7 +674,7 @@
     window.Casetas3D = {
         acentos: ACENTOS,
         disenos: {
-            lzc: { nombre: "Caseta LZC", desc: "Modelada en SketchUp: techo con 2 paneles solares, cristal templado, celosía de madera, banca y apoyo isquiático, mapa «Usted está aquí», carga USB, espacio para silla de ruedas, botes de basura separada (orgánico, inorgánico y reciclable), banca exterior, rampa para silla de ruedas y pantalla de llegada colgada del techo.", crear: lzc, acento: "amarillo" },
+            lzc: { nombre: "Caseta LZC", desc: "Modelada en SketchUp: techo con 2 paneles solares, cristal templado, celosía de madera, banca y apoyo isquiático, mapa «Usted está aquí», carga USB, espacio para silla de ruedas, botes de basura separada (orgánico, inorgánico y reciclable), banca exterior, rampa para silla de ruedas, botón de voz con braille y pantalla de llegada colgada del techo.", crear: lzc, acento: "amarillo" },
             solar: { nombre: "Solar básica", desc: "Versión sencilla: techo fotovoltaico, tira LED, banca con respaldo de cristal, franja táctil, botes de basura separada, banca exterior y rampa para silla de ruedas.", crear: solar, acento: "verde" }
         },
         plantillaLZC: null, // la llena el visor al leer modelos/caseta-lzc (caseta-lzc-modelo.js)

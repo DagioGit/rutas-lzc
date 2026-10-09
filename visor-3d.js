@@ -111,6 +111,7 @@
                 <div class="visor__horas">
                   <button type="button" data-llegada-simular>Ver cómo llega</button>
                   <button type="button" data-llegada-vivo hidden>Volver a la hora real</button>
+                  <button type="button" data-llegada-voz aria-label="Escuchar la próxima combi en voz alta">🔊 Escuchar</button>
                 </div>
                 <p class="visor__nota">El tótem, la lista de llegadas y el mapa usan el mismo horario: una combi cada 15 min, de 6:00 a 22:00.</p>
               </div>
@@ -176,6 +177,7 @@
             llegadaTexto: raiz.querySelector("[data-llegada-texto]"),
             llegadaModo: raiz.querySelector("[data-llegada-modo]"),
             llegadaSimular: raiz.querySelector("[data-llegada-simular]"),
+            llegadaVoz: raiz.querySelector("[data-llegada-voz]"),
             llegadaVivo: raiz.querySelector("[data-llegada-vivo]"),
             grupoCaseta: raiz.querySelector("[data-grupo-caseta]"),
             vistaInicio: raiz.querySelector("[data-vista-inicio]")
@@ -197,6 +199,8 @@
             H.simular(t + e.segundos - 20, 1);
         });
         ui.llegadaVivo.addEventListener("click", () => { if (window.RutaHorario) window.RutaHorario.enVivo(); });
+        // Señalamiento por voz (lo mismo que dice la bocina de la caseta al presionar el botón)
+        ui.llegadaVoz.addEventListener("click", () => decirLlegada());
         ui.hora.addEventListener("input", () => aplicarHora(parseFloat(ui.hora.value)));
         raiz.querySelectorAll("[data-hora-fija]").forEach(b => b.addEventListener("click", () => aplicarHora(parseFloat(b.dataset.horaFija))));
         ui.archivo.addEventListener("change", () => { if (ui.archivo.files[0]) cargarArchivoPropio(ui.archivo.files[0]); ui.archivo.value = ""; });
@@ -557,6 +561,30 @@
             if (pausado) return;
             cuadro(dt, ahora);
         });
+    }
+
+    // Señalamiento por voz: dice la parada y en cuánto llega la próxima combi.
+    function textoVoz(parada, e) {
+        const F = window.Formato;
+        const nombre = parada ? parada.name : "esta parada";
+        if (!e) return `Parada de combi ${nombre}.`;
+        if (!e.servicio) return `Parada de combi ${nombre}. Por ahora no hay combis. La primera pasa a las ${F ? F.horaDia(e.llegada) : ""}.`;
+        if (e.enParada) return `Parada de combi ${nombre}. La combi está en la parada. Puede subir.`;
+        const min = Math.round(e.segundos / 60);
+        const cuanto = e.segundos < 60 ? "en menos de un minuto" : min === 1 ? "en un minuto" : `en ${min} minutos`;
+        return `Parada de combi ${nombre}. La próxima combi llega ${cuanto}, a las ${F ? F.horaDia(e.llegada) : ""}.`;
+    }
+    function decirLlegada() {
+        if (!("speechSynthesis" in window) || !zonaActual) return;
+        const H = window.RutaHorario;
+        const parada = zonaActual.opciones.parada;
+        const e = H ? H.estado(parada.id) : null;
+        const u = new SpeechSynthesisUtterance(textoVoz(parada, e));
+        u.lang = "es-MX"; u.rate = 0.9;
+        const voz = speechSynthesis.getVoices().find(v => /^es(-|_)MX/i.test(v.lang)) || speechSynthesis.getVoices().find(v => /^es/i.test(v.lang));
+        if (voz) u.voice = voz;
+        speechSynthesis.cancel();
+        speechSynthesis.speak(u);
     }
 
     let ultimoPanel = "";
@@ -1573,7 +1601,7 @@
     }
 
     window.VisorZona = {
-        abrir, cerrar,
+        abrir, cerrar, decirLlegada,
         // Capturas: detiene el bucle y dibuja un cuadro a la vez (avanzando dt segundos)
         capturas: {
             pausar(v = true) { pausado = v; },
