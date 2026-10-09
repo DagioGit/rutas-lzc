@@ -16,6 +16,32 @@
         return { numero: I.numero || "2", apodo: I.apodo || "Pollo", color: I.color || "#f2c200", servicio: I.servicio || "6:00 a 22:00" };
     }
 
+    // Pictograma de combi de frente (señal de "parada de combi"), centrado en (cx, cy), ancho s.
+    function pictogramaCombi(c, cx, cy, s, color = "#1d2a33", fondo = null) {
+        const w = s, h = s * 0.9, x = cx - w / 2, y = cy - h / 2;
+        c.save();
+        c.fillStyle = color;
+        redondo(c, x, y, w, h * 0.86, s * 0.16); c.fill();
+        c.fillRect(x + w * 0.1, y + h * 0.8, w * 0.2, h * 0.2);
+        c.fillRect(x + w * 0.7, y + h * 0.8, w * 0.2, h * 0.2);
+        c.fillStyle = fondo || "#ffffff";
+        redondo(c, x + w * 0.12, y + h * 0.12, w * 0.76, h * 0.34, s * 0.06); c.fill();
+        c.beginPath(); c.arc(x + w * 0.22, y + h * 0.64, s * 0.075, 0, Math.PI * 2); c.fill();
+        c.beginPath(); c.arc(x + w * 0.78, y + h * 0.64, s * 0.075, 0, Math.PI * 2); c.fill();
+        c.fillRect(x + w * 0.38, y + h * 0.6, w * 0.24, h * 0.08);
+        c.restore();
+    }
+
+    // Señal "PARADA DE COMBI": pictograma y letrero, en el color de la caseta. No es de ninguna ruta.
+    function dibujarSenal(c, w, h, color = "#f2c200") {
+        c.fillStyle = "#1d2a33"; c.beginPath(); c.arc(w / 2, h / 2, w / 2, 0, Math.PI * 2); c.fill();
+        c.fillStyle = color; c.beginPath(); c.arc(w / 2, h / 2, w / 2 - w * 0.055, 0, Math.PI * 2); c.fill();
+        pictogramaCombi(c, w / 2, h * 0.42, w * 0.42, "#1d2a33", color);
+        c.fillStyle = "#1d2a33"; c.font = `bold ${Math.round(w * 0.13)}px Arial`; c.textAlign = "center"; c.textBaseline = "middle";
+        c.fillText("PARADA", w / 2, h * 0.72);
+        c.font = `bold ${Math.round(w * 0.075)}px Arial`; c.fillText("DE COMBI", w / 2, h * 0.82);
+    }
+
     const ACENTOS = {
         azul: 0x2e6c93,
         verde: 0x2f7d5b,
@@ -62,14 +88,10 @@
         return { g, luces, mat, caja, cil, lienzo };
     }
 
-    // Señal de parada en poste (disco amarillo con la "R2").
+    // Señal de parada en poste: "PARADA DE COMBI" (no es de ninguna ruta).
     function senal(THREE, k, x, y) {
         k.caja(0.08, 0.08, 2.9, x, y, 0.16, k.mat(0x2b3a45, { metalness: 0.4 }));
-        const disco = k.lienzo(128, 128, (c, w, h) => {
-            c.fillStyle = "#1d2a33"; c.beginPath(); c.arc(w / 2, h / 2, w / 2, 0, Math.PI * 2); c.fill();
-            c.fillStyle = "#f2c200"; c.beginPath(); c.arc(w / 2, h / 2, w / 2 - 9, 0, Math.PI * 2); c.fill();
-            c.fillStyle = "#1d2a33"; c.font = "bold 50px Arial"; c.textAlign = "center"; c.textBaseline = "middle"; c.fillText("R2", w / 2, h / 2 + 2);
-        });
+        const disco = k.lienzo(256, 256, (c, w, h) => dibujarSenal(c, w, h, k.colorCss || "#f2c200"));
         const m = new THREE.Mesh(new THREE.CircleGeometry(0.34, 32).rotateY(Math.PI / 2), k.mat(0xffffff, { map: disco.t, side: THREE.DoubleSide }));
         m.position.set(x, y, 2.85);
         k.g.add(m);
@@ -79,6 +101,7 @@
     function solar(THREE, { acento }) {
         const k = base(THREE);
         const color = ACENTOS[acento] || ACENTOS.verde;
+        k.colorCss = "#" + new THREE.Color(color).getHexString();
         const grafito = k.mat(0x2b3237, { metalness: 0.6, roughness: 0.35 });
         // dos marcos en "C" sostienen el techo en voladizo hacia la calle
         [-1.85, 1.85].forEach(x => {
@@ -109,7 +132,7 @@
         k.caja(2.4, 0.45, 0.06, -0.2, 0.55, 0.6, banca);
         [-1.4, -0.2, 1.0].forEach(x => k.caja(0.06, 0.45, 0.28, x, 0.55, 0.66, grafito));
         senal(THREE, k, -2.6, 0.95);
-        mobiliario(THREE, k.g, { xBotes: 2.75, xBanca: -3.95 });
+        mobiliario(THREE, k.g, { xBotes: 2.75, xBanca: -3.95, alto: 0.16 });
         return { grupo: k.g, luces: k.luces, alturaLuz: 2.6, techo: 2.8, actualizar() {} };
     }
 
@@ -145,8 +168,35 @@
     }
 
     // Mapa «Usted está aquí»: recorrido, paradas vecinas y lugares a pie.
+    // Tipos de lugar de OpenStreetMap → categorías del mapa
+    const TIPO_OSM = {
+        pharmacy: "salud", clinic: "salud", hospital: "salud", doctors: "salud", dentist: "salud",
+        school: "escuela", college: "escuela", university: "escuela", kindergarten: "escuela",
+        restaurant: "compras", fast_food: "compras", cafe: "compras", convenience: "compras", supermarket: "compras",
+        marketplace: "compras", bakery: "compras", florist: "compras", clothes: "compras", hardware: "compras", mall: "compras",
+        post_office: "trámite", bank: "trámite", townhall: "trámite", police: "trámite", fire_station: "trámite",
+        courthouse: "trámite", public_building: "trámite", place_of_worship: "trámite",
+        park: "parque", playground: "parque", sports_centre: "parque", stadium: "parque",
+        bus_station: "transporte", fuel: "transporte", parking: "transporte", taxi: "transporte"
+    };
+    const CAMINAR = 75; // metros por minuto
+
+    // Lugares cerca de la parada: los de la página (Ruta 2) o los de OpenStreetMap.
+    function lugaresCerca(parada, osm) {
+        if (parada.cerca && parada.cerca.length) return parada.cerca;
+        if (!osm || !osm.p) return [];
+        const vistos = new Set();
+        return osm.p
+            .filter(([, , , nombre]) => nombre && !vistos.has(nombre) && vistos.add(nombre))
+            .map(([x, y, tipo, nombre]) => ({ x, y, tipo: TIPO_OSM[tipo] || "compras", nombre, d: Math.hypot(x, y) }))
+            .filter(l => l.d > 15 && l.d < 260)
+            .sort((a, b) => a.d - b.d)
+            .slice(0, 6)
+            .map(l => ({ ...l, min: Math.max(1, Math.round(l.d * 1.25 / CAMINAR)) }));
+    }
+
+    // Mapa «Usted está aquí»: calles, manzanas y lugares cerca (OpenStreetMap). No es de ninguna ruta.
     function dibujarMapa(c, w, h, parada) {
-        const R = window.RUTA_2;
         c.fillStyle = "#f3f1ea"; c.fillRect(0, 0, w, h);
         // encabezado
         c.fillStyle = "#1d2a33"; c.fillRect(0, 0, w, 150);
@@ -156,45 +206,73 @@
         c.textAlign = "left"; c.fillStyle = "#ffffff"; c.font = "bold 46px Arial";
         c.fillText("Usted está aquí", 142, 62);
         c.fillStyle = "#f2c200";
-        const sub = parada ? `${parada.name}${parada.apodo ? " · " + parada.apodo : ""}` : "Ruta 2";
+        const sub = parada ? parada.name : "Parada de combi";
         let tam = 28;
         do { c.font = `bold ${tam}px Arial`; tam -= 1; } while (c.measureText(sub).width > w - 166 && tam > 14);
         c.fillText(sub, 142, 106);
-        if (!parada || !R) return;
+        if (!parada) return;
+
+        const osm = (window.ZONAS_OSM || {})[parada.id];
+        const R2 = window.RUTA_2;
+        const cerca = lugaresCerca(parada, osm);
 
         // mapa
         const x0 = 24, y0 = 170, mw = w - 48, mh = 470;
         c.save();
-        redondo(c, x0, y0, mw, mh, 18); c.fillStyle = "#ffffff"; c.fill(); c.clip();
-        const RADIO = 620; // metros visibles desde la parada
+        redondo(c, x0, y0, mw, mh, 18); c.fillStyle = "#eceae2"; c.fill(); c.clip();
+        const RADIO = osm ? 260 : 620; // metros visibles desde la parada (a lo ancho)
         const esc = (mw / 2) / RADIO;
         const cx = x0 + mw / 2, cy = y0 + mh / 2;
-        const pr = (lng, lat) => [cx + (lng - parada.lng) * 105900 * esc, cy - (lat - parada.lat) * 110570 * esc];
-        // cuadrícula de manzanas
-        c.strokeStyle = "#ece8de"; c.lineWidth = 1;
-        for (let x = x0; x < x0 + mw; x += 26) { c.beginPath(); c.moveTo(x, y0); c.lineTo(x, y0 + mh); c.stroke(); }
-        for (let y = y0; y < y0 + mh; y += 26) { c.beginPath(); c.moveTo(x0, y); c.lineTo(x0 + mw, y); c.stroke(); }
-        // radio de 5 minutos a pie (400 m)
-        c.setLineDash([10, 8]); c.strokeStyle = "#9fb2bd"; c.lineWidth = 3;
-        c.beginPath(); c.arc(cx, cy, 400 * esc, 0, Math.PI * 2); c.stroke(); c.setLineDash([]);
-        c.fillStyle = "#7d909b"; c.font = "18px Arial"; c.textAlign = "center";
-        c.fillText("5 min a pie", cx, cy - 400 * esc - 8);
-        // recorrido
-        const linea = () => { c.beginPath(); R.trazo.forEach((p, i) => { const q = pr(p[0], p[1]); i ? c.lineTo(q[0], q[1]) : c.moveTo(q[0], q[1]); }); };
+        const pm = (x, y) => [cx + x * esc, cy - y * esc]; // metros desde la parada
+        const pg = (lng, lat) => pm((lng - parada.lng) * 105900, (lat - parada.lat) * 110570);
+        const trazo = (pts, f) => { c.beginPath(); pts.forEach((p, i) => { const q = f(p); i ? c.lineTo(q[0], q[1]) : c.moveTo(q[0], q[1]); }); };
         c.lineJoin = c.lineCap = "round";
-        linea(); c.strokeStyle = "#1d2a33"; c.lineWidth = 16; c.stroke();
-        linea(); c.strokeStyle = "#f2c200"; c.lineWidth = 9; c.stroke();
-        // otras paradas
-        R.paradas.forEach(p => {
-            if (p.id === parada.id) return;
-            const q = pr(p.lng, p.lat);
-            if (q[0] < x0 || q[0] > x0 + mw || q[1] < y0 || q[1] > y0 + mh) return;
-            c.fillStyle = "#1d2a33"; redondo(c, q[0] - 16, q[1] - 16, 32, 32, 7); c.fill();
-            c.fillStyle = "#f2c200"; c.font = "bold 20px Arial"; c.textAlign = "center"; c.textBaseline = "middle"; c.fillText(p.corto, q[0], q[1] + 1);
-        });
+        if (osm) {
+            const colorArea = { hospital: "#f4dcdc", clinic: "#f4dcdc", school: "#dde6f4", university: "#dde6f4", college: "#dde6f4",
+                retail: "#f2e6d4", commercial: "#f2e6d4", park: "#d6ebcd", grass: "#d6ebcd", playground: "#d6ebcd", parking: "#e2e2e2" };
+            (osm.a || []).forEach(([tipo, , pts]) => { trazo(pts, p => pm(p[0], p[1])); c.closePath(); c.fillStyle = colorArea[tipo] || "#e6e4dc"; c.fill(); });
+            (osm.e || []).forEach(([, , , pts]) => { trazo(pts, p => pm(p[0], p[1])); c.closePath(); c.fillStyle = "#d8d4cb"; c.fill(); c.strokeStyle = "#c6c1b7"; c.lineWidth = 1; c.stroke(); });
+            const ancho = { trunk: 24, primary: 22, trunk_link: 12, primary_link: 12, secondary: 16, tertiary: 14, residential: 10, unclassified: 10, living_street: 9, service: 6, footway: 3, path: 3 };
+            const calles = (osm.c || []).slice().sort((a, b) => (ancho[a[0]] || 8) - (ancho[b[0]] || 8));
+            calles.forEach(([tipo, , , pts]) => { trazo(pts, p => pm(p[0], p[1])); c.strokeStyle = "#c3beb3"; c.lineWidth = (ancho[tipo] || 8) + 4; c.stroke(); });
+            calles.forEach(([tipo, , , pts]) => { trazo(pts, p => pm(p[0], p[1])); c.strokeStyle = "#ffffff"; c.lineWidth = ancho[tipo] || 8; c.stroke(); });
+            // nombres de las calles grandes (una vez cada una)
+            const nombradas = new Set();
+            calles.slice().reverse().forEach(([tipo, nombre, , pts]) => {
+                if (!nombre || nombradas.has(nombre) || (ancho[tipo] || 8) < 10 || pts.length < 2) return;
+                let mejor = null, largo = 0;
+                for (let i = 1; i < pts.length; i++) {
+                    const l = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
+                    if (l > largo) { largo = l; mejor = [pts[i - 1], pts[i]]; }
+                }
+                if (!mejor || largo * esc < 120) return;
+                nombradas.add(nombre);
+                const [a, b] = mejor.map(p => pm(p[0], p[1]));
+                let ang = Math.atan2(b[1] - a[1], b[0] - a[0]);
+                if (ang > Math.PI / 2) ang -= Math.PI; if (ang < -Math.PI / 2) ang += Math.PI;
+                c.save(); c.translate((a[0] + b[0]) / 2, (a[1] + b[1]) / 2); c.rotate(ang);
+                c.fillStyle = "#6b7a83"; c.font = "bold 15px Arial"; c.textAlign = "center"; c.textBaseline = "middle";
+                const corto = nombre.replace(/^Avenida /, "Av. ").replace(/^Calle /, "").replace(/^Boulevard /, "Blvd. ");
+                c.fillText(corto, 0, 1);
+                c.restore();
+            });
+        } else if (R2) {
+            // sin datos de OpenStreetMap: cuadrícula y la calle por donde pasan las combis
+            c.strokeStyle = "#e0ddd3"; c.lineWidth = 1;
+            for (let x = x0; x < x0 + mw; x += 26) { c.beginPath(); c.moveTo(x, y0); c.lineTo(x, y0 + mh); c.stroke(); }
+            for (let y = y0; y < y0 + mh; y += 26) { c.beginPath(); c.moveTo(x0, y); c.lineTo(x0 + mw, y); c.stroke(); }
+            trazo(R2.trazo, p => pg(p[0], p[1])); c.strokeStyle = "#c3beb3"; c.lineWidth = 18; c.stroke();
+            trazo(R2.trazo, p => pg(p[0], p[1])); c.strokeStyle = "#ffffff"; c.lineWidth = 14; c.stroke();
+        }
+        // círculo de lo que se camina en ~3 min
+        const radioPie = osm ? 200 : 400;
+        c.setLineDash([10, 8]); c.strokeStyle = "#8ea2ad"; c.lineWidth = 3;
+        c.beginPath(); c.arc(cx, cy, radioPie * esc, 0, Math.PI * 2); c.stroke(); c.setLineDash([]);
+        c.fillStyle = "#6b7f8a"; c.font = "bold 17px Arial"; c.textAlign = "center"; c.textBaseline = "alphabetic";
+        c.fillText(`${Math.round(radioPie * 1.25 / CAMINAR)} min a pie`, cx, cy - radioPie * esc - 8);
         // lugares
-        (parada.cerca || []).forEach((l, i) => {
-            const q = pr(l.lng, l.lat);
+        cerca.slice(0, 6).forEach((l, i) => {
+            const q = l.x != null ? pm(l.x, l.y) : pg(l.lng, l.lat);
             const t = TIPOS[l.tipo] || TIPOS.transporte;
             c.fillStyle = "#ffffff"; c.beginPath(); c.arc(q[0], q[1], 19, 0, Math.PI * 2); c.fill();
             c.fillStyle = t.color; c.beginPath(); c.arc(q[0], q[1], 16, 0, Math.PI * 2); c.fill();
@@ -207,13 +285,14 @@
         c.restore();
         // norte
         c.fillStyle = "#1d2a33"; c.beginPath(); c.moveTo(x0 + mw - 34, y0 + 22); c.lineTo(x0 + mw - 24, y0 + 50); c.lineTo(x0 + mw - 44, y0 + 50); c.fill();
-        c.font = "bold 18px Arial"; c.textAlign = "center"; c.fillText("N", x0 + mw - 34, y0 + 68);
+        c.font = "bold 18px Arial"; c.textAlign = "center"; c.textBaseline = "alphabetic"; c.fillText("N", x0 + mw - 34, y0 + 68);
 
         // lista de lugares
         let y = 674;
         c.textAlign = "left"; c.textBaseline = "middle";
         c.fillStyle = "#1d2a33"; c.font = "bold 26px Arial"; c.fillText("Cerca de esta parada", 28, y); y += 42;
-        (parada.cerca || []).slice(0, 6).forEach((l, i) => {
+        if (!cerca.length) { c.fillStyle = "#5f717b"; c.font = "22px Arial"; c.fillText("Camine con cuidado y use los cruces.", 28, y); }
+        cerca.slice(0, 6).forEach((l, i) => {
             const t = TIPOS[l.tipo] || TIPOS.transporte;
             c.fillStyle = t.color; c.beginPath(); c.arc(44, y, 16, 0, Math.PI * 2); c.fill();
             c.fillStyle = "#fff"; c.font = "bold 18px Arial"; c.textAlign = "center"; c.fillText(String(i + 1), 44, y + 1);
@@ -224,17 +303,16 @@
             c.textAlign = "left";
             y += 38;
         });
-        // pie: ruta y código QR
+        // pie: parada de combi y código QR
         c.fillStyle = "#1d2a33"; c.fillRect(0, h - 92, w, 92);
-        c.fillStyle = "#f2c200"; c.beginPath(); c.arc(56, h - 46, 26, 0, Math.PI * 2); c.fill();
-        c.fillStyle = "#1d2a33"; c.font = "bold 30px Arial"; c.textAlign = "center"; c.fillText("2", 56, h - 44);
-        c.textAlign = "left"; c.fillStyle = "#fff"; c.font = "bold 24px Arial"; c.fillText("Ruta 2 «Pollo»", 96, h - 60);
+        pictogramaCombi(c, 56, h - 46, 50, "#f2c200", "#1d2a33");
+        c.textAlign = "left"; c.fillStyle = "#fff"; c.font = "bold 24px Arial"; c.fillText("Parada de combi", 96, h - 60);
         c.fillStyle = "#b7c3ca"; c.font = "19px Arial"; c.fillText("Escanea para ver la próxima combi", 96, h - 30);
         // patrón del código QR (ilustrativo)
         const qx = w - 82, qy = h - 84, cel = 76 / 21;
         c.fillStyle = "#fff"; c.fillRect(qx - 4, qy - 4, 84, 84);
         c.fillStyle = "#1d2a33";
-        let semilla = parada.id.charCodeAt(0) * 7919;
+        let semilla = (parada.id.charCodeAt(0) + parada.id.length * 31) * 7919;
         const azar = () => { semilla = (semilla * 16807) % 2147483647; return semilla / 2147483647; };
         for (let i = 0; i < 21; i++) for (let j = 0; j < 21; j++) {
             const esquina = (i < 7 && j < 7) || (i > 13 && j < 7) || (i < 7 && j > 13);
@@ -251,18 +329,20 @@
         c.fillStyle = "#f2c200"; c.fillRect(0, 0, 210, h);
         c.fillStyle = "#1d2a33"; c.font = "bold 76px Arial"; c.textAlign = "center"; c.textBaseline = "middle";
         c.fillText("LZC.", 105, h / 2 + 4);
-        c.textAlign = "left"; c.fillStyle = "#ffffff"; c.font = "bold 74px Arial";
+        c.textAlign = "left"; c.fillStyle = "#ffffff";
         const titulo = parada ? parada.name.toUpperCase() : "PARADA";
+        let tamT = 74;
+        do { c.font = `bold ${tamT}px Arial`; tamT -= 2; } while (c.measureText(titulo).width > w - 250 - 560 && tamT > 36);
         c.fillText(titulo, 250, h / 2 + 4);
         const ancho = c.measureText(titulo).width;
         if (parada && parada.apodo) {
             c.fillStyle = "#b7c3ca"; c.font = "60px Arial";
             c.fillText("·  " + parada.apodo, 250 + ancho + 30, h / 2 + 4);
         }
-        c.fillStyle = "#f2c200"; c.beginPath(); c.arc(w - 330, h / 2, 48, 0, Math.PI * 2); c.fill();
-        c.fillStyle = "#1d2a33"; c.font = "bold 62px Arial"; c.textAlign = "center"; c.fillText("2", w - 330, h / 2 + 4);
-        c.textAlign = "left"; c.fillStyle = "#ffffff"; c.font = "bold 44px Arial"; c.fillText("Ruta 2", w - 266, h / 2 - 18);
-        c.fillStyle = "#b7c3ca"; c.font = "36px Arial"; c.fillText("Pollo", w - 266, h / 2 + 30);
+        // a la derecha: pictograma de combi y "PARADA DE COMBI" (la caseta no es de una sola ruta)
+        pictogramaCombi(c, w - 420, h / 2 + 2, 92, "#f2c200", "#1d2a33");
+        c.textAlign = "left"; c.fillStyle = "#ffffff"; c.font = "bold 46px Arial"; c.fillText("PARADA", w - 352, h / 2 - 18);
+        c.fillStyle = "#b7c3ca"; c.font = "38px Arial"; c.fillText("de combi", w - 352, h / 2 + 30);
     }
 
     const cacheTexturas = {};
@@ -315,24 +395,13 @@
             [w / 2 - 50, w / 2 + 50].forEach(x => { c.fillStyle = "#0a0c0e"; redondo(c, x - 30, 80, 60, 26, 5); c.fill(); c.fillStyle = "#59636b"; c.fillRect(x - 20, 88, 40, 10); });
             c.fillStyle = "#8fa3ae"; c.font = "22px Arial"; c.fillText("energía solar", w / 2, 150);
         });
-        cacheTexturas.disco = textura(THREE, 256, 256, (c, w, h) => {
-            c.fillStyle = "#1d2a33"; c.fillRect(0, 0, w, h);
-            c.fillStyle = "#f2c200"; c.beginPath(); c.arc(w / 2, h / 2, w / 2 - 14, 0, Math.PI * 2); c.fill();
-            c.fillStyle = "#1d2a33"; c.font = "bold 96px Arial"; c.textAlign = "center"; c.textBaseline = "middle"; c.fillText("R2", w / 2, h / 2 + 4);
-        });
         cacheTexturas.listo = true;
         return cacheTexturas;
     }
 
-    // Disco de la señal de parada con el número de la ruta ("R1" gris, "R2" amarillo).
-    function discoRuta(THREE) {
-        const R = infoRuta();
-        return textura(THREE, 256, 256, (c, w, h) => {
-            c.fillStyle = "#1d2a33"; c.fillRect(0, 0, w, h);
-            c.fillStyle = R.color; c.beginPath(); c.arc(w / 2, h / 2, w / 2 - 14, 0, Math.PI * 2); c.fill();
-            const claro = parseInt(R.color.slice(1, 3), 16) * 0.3 + parseInt(R.color.slice(3, 5), 16) * 0.59 + parseInt(R.color.slice(5, 7), 16) * 0.11 > 150;
-            c.fillStyle = claro ? "#1d2a33" : "#ffffff"; c.font = "bold 96px Arial"; c.textAlign = "center"; c.textBaseline = "middle"; c.fillText("R" + R.numero, w / 2, h / 2 + 4);
-        });
+    // Disco de la señal de parada: "PARADA DE COMBI" en el color de la caseta.
+    function discoParada(THREE, colorCss) {
+        return textura(THREE, 512, 512, (c, w, h) => dibujarSenal(c, w, h, colorCss));
     }
 
     function lzc(THREE, { acento, parada }) {
@@ -359,7 +428,7 @@
             LZC_Letrero: std({ color: 0xffffff, map: letrero, emissive: 0xffffff, emissiveMap: letrero, emissiveIntensity: 0.1, roughness: 0.4 }),
             LZC_ISA: std({ color: 0xffffff, map: T.isa, roughness: 0.8 }),
             LZC_USB: std({ color: 0xffffff, map: T.usb, emissive: 0xffffff, emissiveMap: T.usb, emissiveIntensity: 0.1 }),
-            LZC_Disco: std({ color: 0xffffff, map: discoRuta(THREE), roughness: 0.4 })
+            LZC_Disco: std({ color: 0xffffff, map: discoParada(THREE, "#" + new THREE.Color(color).getHexString()), roughness: 0.4 })
         };
         // de noche: la tira LED brilla fuerte; mapa y letrero, retroiluminados más suaves
         luces.push(MATS.LZC_LED);
@@ -384,7 +453,7 @@
     // ---------- Mobiliario: botes de basura separada y banca exterior ----------
     // [xBotes]: dónde van los botes (a lo largo de la caseta); [botesExistentes]: la Caseta LZC
     // ya trae orgánico e inorgánico, aquí sólo se les pone tapa y etiqueta y se agrega el de reciclables.
-    function mobiliario(THREE, g, { xBotes = 2.72, botesExistentes = false, xBanca = -3.95 } = {}) {
+    function mobiliario(THREE, g, { xBotes = 2.72, botesExistentes = false, xBanca = -3.95, alto = 0.15 } = {}) {
         const m = (color, extra = {}) => new THREE.MeshStandardMaterial({ color, roughness: 0.6, metalness: 0.05, ...extra });
         const caja = (lx, ly, lz, x, y, z, mm) => {
             const o = new THREE.Mesh(new THREE.BoxGeometry(lx, ly, lz), mm);
@@ -401,7 +470,7 @@
         };
         // [y del centro, color cuerpo, color tapa, texto, símbolo]
         const botes = [
-            [-0.34, 0x1f5caa, 0x163f78, "RECICLA", "R"],
+            [1.09, 0x1f5caa, 0x163f78, "RECICLA", "R"],
             [0.15, 0x2f7d5b, 0x1f5f43, "ORGÁNICO", "O"],
             [0.62, 0x70787e, 0x4a5157, "INORGÁNICO", "I"]
         ];
@@ -415,6 +484,40 @@
             e.position.set(xBotes, y - 0.225, 0.5);
             g.add(e);
         });
+        // rampa para silla de ruedas: baja del piso de la caseta a la banqueta (pendiente ~7 %),
+        // pintada de azul con el símbolo de accesibilidad y orillas amarillas
+        {
+            const L = 2.0, ANCHO = 0.95, x0 = 2.4, yC = -0.74;
+            const forma = new THREE.Shape([new THREE.Vector2(0, 0), new THREE.Vector2(L, 0), new THREE.Vector2(0, alto)]);
+            const cuña = new THREE.ExtrudeGeometry(forma, { depth: ANCHO, bevelEnabled: false }).rotateX(Math.PI / 2);
+            const rampa = new THREE.Mesh(cuña, m(0x2d63c8, { roughness: 0.8 }));
+            rampa.position.set(x0, yC + ANCHO / 2, 0);
+            rampa.castShadow = false; rampa.receiveShadow = true;
+            g.add(rampa);
+            const c2 = document.createElement("canvas"); c2.width = 256; c2.height = 512;
+            const x = c2.getContext("2d");
+            x.fillStyle = "#2d63c8"; x.fillRect(0, 0, 256, 512);
+            x.strokeStyle = "#ffffff"; x.fillStyle = "#ffffff"; x.lineWidth = 14; x.lineCap = "round";
+            const cx = 124, cy = 282;
+            x.beginPath(); x.arc(cx + 8, cy + 26, 48, 0.2 * Math.PI, 1.55 * Math.PI); x.stroke();
+            x.beginPath(); x.arc(cx - 6, cy - 82, 15, 0, Math.PI * 2); x.fill();
+            x.beginPath(); x.moveTo(cx - 6, cy - 58); x.lineTo(cx - 2, cy - 2); x.lineTo(cx + 40, cy - 2); x.lineTo(cx + 58, cy + 40); x.stroke();
+            x.beginPath(); x.moveTo(cx - 4, cy - 34); x.lineTo(cx + 32, cy - 34); x.stroke();
+            const t = new THREE.CanvasTexture(c2); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
+            const ang = Math.atan2(alto, L);
+            // el símbolo se lee de frente al subir la rampa
+            const sim = new THREE.Mesh(new THREE.PlaneGeometry(ANCHO * 0.8, Math.hypot(L, alto) * 0.6).rotateZ(Math.PI / 2), m(0xffffff, { map: t, roughness: 0.8 }));
+            sim.rotation.y = ang;
+            sim.position.set(x0 + L / 2, yC, alto / 2 + 0.006);
+            g.add(sim);
+            // orillas amarillas
+            [yC - ANCHO / 2 + 0.03, yC + ANCHO / 2 - 0.03].forEach(yy => {
+                const o = new THREE.Mesh(new THREE.BoxGeometry(Math.hypot(L, alto), 0.06, 0.012), m(0xf2c200, { roughness: 0.6 }));
+                o.rotation.y = ang;
+                o.position.set(x0 + L / 2, yy, alto / 2 + 0.008);
+                g.add(o);
+            });
+        }
         // banca exterior: patas de concreto, tablas de madera y respaldo
         const concreto = m(0xb3ada4, { roughness: 0.95 }), madera = m(0x9e683c, { roughness: 0.75 });
         [-0.72, 0.72].forEach(dx => caja(0.16, 0.52, 0.42, xBanca + dx, 0.45, 0.0, concreto));
@@ -476,11 +579,9 @@
             const R = info();
             const x = c.getContext("2d"), w = c.width, h = c.height;
             x.fillStyle = "#0c1419"; x.fillRect(0, 0, w, h);
-            // ruta
-            x.fillStyle = R.color; x.beginPath(); x.arc(84, 78, 52, 0, Math.PI * 2); x.fill();
-            const claro = parseInt(R.color.slice(1, 3), 16) * 0.3 + parseInt(R.color.slice(3, 5), 16) * 0.59 + parseInt(R.color.slice(5, 7), 16) * 0.11 > 150;
-            x.fillStyle = claro ? "#0c1419" : "#ffffff"; x.font = "bold 58px Arial"; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(R.numero, 84, 82);
-            x.fillStyle = "#c9d4da"; x.font = "bold 22px Arial"; x.fillText(R.apodo, 84, 162);
+            // pictograma de combi (la pantalla es de la parada, no de una ruta)
+            pictogramaCombi(x, 86, 80, 96, "#f2c200", "#0c1419");
+            x.fillStyle = "#c9d4da"; x.font = "bold 22px Arial"; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText("PARADA", 86, 162);
             x.fillStyle = "#24343d"; x.fillRect(170, 22, 3, h - 44);
             x.textAlign = "left"; x.textBaseline = "alphabetic";
             if (sinServicio) {
@@ -504,8 +605,8 @@
     window.Casetas3D = {
         acentos: ACENTOS,
         disenos: {
-            lzc: { nombre: "Caseta LZC", desc: "Modelada en SketchUp: techo con 2 paneles solares, cristal templado, celosía de madera, banca y apoyo isquiático, mapa «Usted está aquí», carga USB, espacio para silla de ruedas, botes de basura separada (orgánico, inorgánico y reciclable), banca exterior y pantalla de llegada colgada del techo.", crear: lzc, acento: "amarillo" },
-            solar: { nombre: "Solar básica", desc: "Versión sencilla: techo fotovoltaico, tira LED, banca con respaldo de cristal, franja táctil, botes de basura separada y banca exterior.", crear: solar, acento: "verde" }
+            lzc: { nombre: "Caseta LZC", desc: "Modelada en SketchUp: techo con 2 paneles solares, cristal templado, celosía de madera, banca y apoyo isquiático, mapa «Usted está aquí», carga USB, espacio para silla de ruedas, botes de basura separada (orgánico, inorgánico y reciclable), banca exterior, rampa para silla de ruedas y pantalla de llegada colgada del techo.", crear: lzc, acento: "amarillo" },
+            solar: { nombre: "Solar básica", desc: "Versión sencilla: techo fotovoltaico, tira LED, banca con respaldo de cristal, franja táctil, botes de basura separada, banca exterior y rampa para silla de ruedas.", crear: solar, acento: "verde" }
         },
         plantillaLZC: null, // la llena el visor al leer modelos/caseta-lzc (caseta-lzc-modelo.js)
         dibujarMapa,
