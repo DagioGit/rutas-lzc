@@ -1,12 +1,13 @@
 // Horario para el visor 3D cuando se abre desde la app (visor.html?zona=R1-…&f=8&d=123):
-// una combi sale del inicio cada `f` minutos de 6:00 a 22:00 y llega a la parada `d`
+// una combi sale del inicio cada `f` minutos desde las 6:00 hasta `fin` (última salida, en
+// segundos del día; 22:00 si no viene) y llega a la parada `d`
 // segundos después de salir; se detiene ESPERA segundos. Mismo formato que horario.js.
 (function () {
     const q = new URLSearchParams(location.search);
     const H = (parseFloat(q.get("f")) || 10) * 60;
     const OFF = parseFloat(q.get("d")) || 0;
     const ESPERA = parseFloat(q.get("espera")) || 40;
-    const INICIO = 6 * 3600, FIN = 22 * 3600, DIA = 86400;
+    const INICIO = 6 * 3600, FIN = parseFloat(q.get("fin")) || 22 * 3600, DIA = 86400;
 
     const reloj = { modo: "vivo", base: 0, desde: 0, velocidad: 1 };
     const segundosDelDia = d => d.getHours() * 3600 + d.getMinutes() * 60 + d.getSeconds() + d.getMilliseconds() / 1000;
@@ -19,10 +20,10 @@
         let j = Math.ceil((t - ESPERA - OFF - INICIO) / H);
         if (j < 0) j = 0;
         let llega = INICIO + j * H + OFF, manana = false;
-        if (INICIO + j * H >= FIN) { llega = INICIO + OFF + DIA; manana = true; }
+        if (INICIO + j * H > FIN) { llega = INICIO + OFF + DIA; manana = true; }
         const en = t >= llega && t < llega + ESPERA;
         const jPrev = Math.floor((t - OFF - INICIO) / H);
-        const anterior = jPrev >= 0 && INICIO + jPrev * H < FIN ? INICIO + jPrev * H + OFF : null;
+        const anterior = jPrev >= 0 && INICIO + jPrev * H <= FIN ? INICIO + jPrev * H + OFF : null;
         return {
             segundos: Math.max(0, llega - t),
             enParada: en,
