@@ -615,6 +615,8 @@
         soporte.clear();
         casetaActiva = null;
         luzCaseta = null;
+        // la pantalla de llegada cuelga del techo: sin caseta no hay pantalla
+        if (zonaActual.contador) zonaActual.contador.grupo.visible = config.diseno !== "ninguna";
         if (config.diseno === "ninguna") return aplicarHora(config.hora);
 
         let objeto;
@@ -627,20 +629,23 @@
         } else return;
         objeto.traverse(o => { if (o.isMesh) { o.castShadow = !o.material.transparent; o.receiveShadow = true; } });
         soporte.add(objeto);
+        if (zonaActual.contador && zonaActual.contador.colgar) zonaActual.contador.colgar(casetaActiva.techo || 2.62);
         luzCaseta = new THREE.PointLight(0xfff0d0, 0, 9, 2);
         luzCaseta.position.set(0, 0, casetaActiva.alturaLuz);
         soporte.add(luzCaseta);
         aplicarHora(config.hora);
     }
 
-    // Tótem con el contador de llegada, a un lado de la caseta (se queda aunque cambie la caseta).
+    // Pantalla con el contador de llegada, colgada del techo al frente de la caseta (es parte de ella).
     function montarContador(zona) {
         if (zona.contador || !zona.caseta || !window.Casetas3D || !window.Casetas3D.crearContador) return;
         const c = window.Casetas3D.crearContador(THREE);
         c.grupo.position.copy(zona.caseta.position);
         c.grupo.rotation.copy(zona.caseta.rotation);
-        c.grupo.translateX(3.3);
-        c.grupo.translateY(-0.15);
+        c.grupo.translateX(-0.75);
+        c.grupo.translateY(-0.95);
+        c.grupo.visible = config.diseno !== "ninguna";
+        if (casetaActiva && casetaActiva.techo) c.colgar(casetaActiva.techo);
         c.grupo.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
         zona.grupo.add(c.grupo);
         zona.contador = c;

@@ -103,7 +103,8 @@
         k.caja(2.4, 0.45, 0.06, -0.2, 0.55, 0.6, banca);
         [-1.4, -0.2, 1.0].forEach(x => k.caja(0.06, 0.45, 0.28, x, 0.55, 0.66, grafito));
         senal(THREE, k, -2.6, 0.95);
-        return { grupo: k.g, luces: k.luces, alturaLuz: 2.6, actualizar() {} };
+        mobiliario(THREE, k.g, { xBotes: 2.75, xBanca: -3.95 });
+        return { grupo: k.g, luces: k.luces, alturaLuz: 2.6, techo: 2.8, actualizar() {} };
     }
 
     // ---------- Caseta LZC: modelada en SketchUp (modelos/caseta-lzc.glb) ----------
@@ -355,96 +356,142 @@
         });
         const g = new THREE.Group();
         g.add(grupo);
+        mobiliario(THREE, g, { xBotes: 2.72, botesExistentes: true, xBanca: -3.95 });
         return {
-            grupo: g, luces, alturaLuz: 2.55,
+            grupo: g, luces, alturaLuz: 2.55, techo: 2.62,
             noche(n) { suaves.forEach(m => { m.emissiveIntensity = 0.08 + 0.75 * n; }); },
             actualizar() {}
         };
     }
 
-    // ---------- Contador de llegada (tótem junto a la parada) ----------
-    // Independiente del diseño de la caseta: se queda aunque cambien la caseta.
+    // ---------- Mobiliario: botes de basura separada y banca exterior ----------
+    // [xBotes]: dónde van los botes (a lo largo de la caseta); [botesExistentes]: la Caseta LZC
+    // ya trae orgánico e inorgánico, aquí sólo se les pone tapa y etiqueta y se agrega el de reciclables.
+    function mobiliario(THREE, g, { xBotes = 2.72, botesExistentes = false, xBanca = -3.95 } = {}) {
+        const m = (color, extra = {}) => new THREE.MeshStandardMaterial({ color, roughness: 0.6, metalness: 0.05, ...extra });
+        const caja = (lx, ly, lz, x, y, z, mm) => {
+            const o = new THREE.Mesh(new THREE.BoxGeometry(lx, ly, lz), mm);
+            o.position.set(x, y, z + lz / 2); o.castShadow = true; o.receiveShadow = true; g.add(o); return o;
+        };
+        const etiqueta = (texto, fondo, simbolo) => {
+            const c = document.createElement("canvas"); c.width = 128; c.height = 160;
+            const x = c.getContext("2d");
+            x.fillStyle = fondo; x.fillRect(0, 0, 128, 160);
+            x.fillStyle = "#ffffff"; x.textAlign = "center"; x.textBaseline = "middle";
+            x.font = "bold 64px Arial"; x.fillText(simbolo, 64, 62);
+            x.font = "bold 19px Arial"; x.fillText(texto, 64, 128);
+            const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+        };
+        // [y del centro, color cuerpo, color tapa, texto, símbolo]
+        const botes = [
+            [-0.34, 0x1f5caa, 0x163f78, "RECICLA", "R"],
+            [0.15, 0x2f7d5b, 0x1f5f43, "ORGÁNICO", "O"],
+            [0.62, 0x70787e, 0x4a5157, "INORGÁNICO", "I"]
+        ];
+        botes.forEach(([y, cuerpo, tapa, texto, simbolo], i) => {
+            if (!(botesExistentes && i > 0)) caja(0.44, 0.44, 0.85, xBotes, y, 0, m(cuerpo, { roughness: 0.5 }));
+            caja(0.48, 0.48, 0.07, xBotes, y, 0.85, m(tapa, { roughness: 0.45 }));
+            caja(0.2, 0.06, 0.035, xBotes, y, 0.92, m(0x2b3237));
+            // etiqueta del lado de la calle
+            const e = new THREE.Mesh(new THREE.PlaneGeometry(0.32, 0.4).rotateX(Math.PI / 2),
+                m(0xffffff, { map: etiqueta(texto, "#" + new THREE.Color(tapa).getHexString(), simbolo), roughness: 0.5 }));
+            e.position.set(xBotes, y - 0.225, 0.5);
+            g.add(e);
+        });
+        // banca exterior: patas de concreto, tablas de madera y respaldo
+        const concreto = m(0xb3ada4, { roughness: 0.95 }), madera = m(0x9e683c, { roughness: 0.75 });
+        [-0.72, 0.72].forEach(dx => caja(0.16, 0.52, 0.42, xBanca + dx, 0.45, 0.0, concreto));
+        [0.24, 0.36, 0.48, 0.6].forEach(y => caja(1.75, 0.1, 0.05, xBanca, y + 0.0, 0.42, madera));
+        [0.62, 0.78].forEach(z => caja(1.75, 0.05, 0.12, xBanca, 0.7, z, madera));
+        [-0.72, 0.72].forEach(dx => caja(0.06, 0.06, 0.5, xBanca + dx, 0.73, 0.42, m(0x2b3237, { metalness: 0.5 })));
+    }
+
+    // ---------- Contador de llegada: pantalla colgada del techo de la caseta ----------
+    // Es parte de la caseta: cuelga al frente, con una cara hacia la calle y otra hacia la banca.
     function contador(THREE) {
         const g = new THREE.Group();
         const mat = (color, extra = {}) => new THREE.MeshStandardMaterial({ color, roughness: 0.5, metalness: 0.2, ...extra });
-        const cuerpo = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.3, 2.35), mat(0x1f262b, { metalness: 0.5, roughness: 0.35 }));
-        cuerpo.position.z = 0.16 + 2.35 / 2;
+        const Z = 2.06; // centro de la pantalla
+        const cuerpo = new THREE.Mesh(new THREE.BoxGeometry(1.16, 0.1, 0.36), mat(0x1f262b, { metalness: 0.5, roughness: 0.35 }));
+        cuerpo.position.z = Z;
         cuerpo.castShadow = true;
         g.add(cuerpo);
-        const remate = new THREE.Mesh(new THREE.BoxGeometry(0.64, 0.32, 0.12), mat(0xf2c200));
-        remate.position.z = 0.16 + 2.35 + 0.06;
+        const remate = new THREE.Mesh(new THREE.BoxGeometry(1.18, 0.12, 0.04), mat(0xf2c200));
+        remate.position.z = Z + 0.2;
         g.add(remate);
-        const base = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.45, 0.16), mat(0x9aa1a7));
-        base.position.z = 0.08;
-        g.add(base);
+        // tirantes hasta el techo (su largo se ajusta con colgar())
+        const tirantes = [-0.45, 0.45].map(x => {
+            const t = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.035, 1), mat(0x2b3237, { metalness: 0.6 }));
+            t.position.x = x;
+            g.add(t);
+            return t;
+        });
+        function colgar(techo) {
+            const z0 = Z + 0.22, largo = Math.max(0.05, techo - z0);
+            tirantes.forEach(t => { t.scale.z = largo; t.position.z = z0 + largo / 2; });
+        }
+        colgar(2.62);
 
         const c = document.createElement("canvas");
-        c.width = 256; c.height = 448;
+        c.width = 640; c.height = 192;
         const tex = new THREE.CanvasTexture(c);
         tex.colorSpace = THREE.SRGBColorSpace;
         tex.anisotropy = 8;
         const pantalla = new THREE.MeshStandardMaterial({ color: 0xffffff, map: tex, emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: 0.6, roughness: 0.25 });
         [-1, 1].forEach(lado => {
-            const m = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.875).rotateX(Math.PI / 2), pantalla);
+            const m = new THREE.Mesh(new THREE.PlaneGeometry(1.06, 0.318).rotateX(Math.PI / 2), pantalla);
             if (lado > 0) m.rotation.z = Math.PI;
-            m.position.set(0, lado * 0.152, 1.72);
+            m.position.set(0, lado * 0.052, Z);
             g.add(m);
         });
 
+        const info = () => {
+            const I = (window.RutaHorario && window.RutaHorario.info) || {};
+            return { numero: I.numero || "2", apodo: I.apodo || "Pollo", color: I.color || "#f2c200", servicio: I.servicio || "6:00 a 22:00" };
+        };
         let ultimo = "";
         const hhmm = t => { const m = Math.floor(t / 60) % 1440; return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`; };
         // e = estado de la parada en horario.js: { segundos, enParada, servicio, llegada }
         function dibujar(e) {
             const segundos = e ? e.segundos : null, enParada = !!(e && e.enParada);
             const sinServicio = !!(e && !e.servicio);
-            const texto = sinServicio ? "SIN SERVICIO" : enParada ? "EN PARADA" : segundos == null ? "--:--" : `${Math.floor(segundos / 60)}:${String(Math.max(0, Math.floor(segundos % 60))).padStart(2, "0")}`;
-            const clave = texto + (sinServicio ? hhmm(e.llegada) : "");
+            const texto = sinServicio ? "Sin servicio" : enParada ? "EN PARADA" : segundos == null ? "--:--" : `${Math.floor(segundos / 60)}:${String(Math.max(0, Math.floor(segundos % 60))).padStart(2, "0")}`;
+            const clave = texto + (e ? hhmm(e.llegada) : "");
             if (clave === ultimo) return;
             ultimo = clave;
-            if (sinServicio) {
-                const x = c.getContext("2d"), w = c.width, h = c.height;
-                x.fillStyle = "#0c1419"; x.fillRect(0, 0, w, h);
-                x.fillStyle = "#f2c200"; x.beginPath(); x.arc(46, 48, 28, 0, Math.PI * 2); x.fill();
-                x.fillStyle = "#0c1419"; x.font = "bold 30px Arial"; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText("2", 46, 50);
-                x.textAlign = "left"; x.fillStyle = "#ffffff"; x.font = "bold 26px Arial"; x.fillText("Ruta 2", 86, 40);
-                x.fillStyle = "#8fa3ae"; x.font = "19px Arial"; x.fillText("Pollo", 86, 64);
-                x.fillStyle = "#24343d"; x.fillRect(18, 100, w - 36, 2);
-                x.fillStyle = "#e8734a"; x.font = "bold 36px Arial"; x.fillText("Sin servicio", 18, 160);
-                x.fillStyle = "#8fa3ae"; x.font = "21px Arial"; x.fillText("Primera combi", 18, 222);
-                x.fillStyle = "#f2c200"; x.font = "bold 64px Arial"; x.fillText(hhmm(e.llegada), 16, 280);
-                x.fillStyle = "#24343d"; x.fillRect(18, 350, w - 36, 2);
-                x.fillStyle = "#c9d4da"; x.font = "19px Arial"; x.fillText("Servicio 6:00 a 22:00", 18, 392);
-                tex.needsUpdate = true;
-                return;
-            }
+            const R = info();
             const x = c.getContext("2d"), w = c.width, h = c.height;
             x.fillStyle = "#0c1419"; x.fillRect(0, 0, w, h);
-            x.fillStyle = "#f2c200"; x.beginPath(); x.arc(46, 48, 28, 0, Math.PI * 2); x.fill();
-            x.fillStyle = "#0c1419"; x.font = "bold 30px Arial"; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText("2", 46, 50);
-            x.textAlign = "left"; x.fillStyle = "#ffffff"; x.font = "bold 26px Arial"; x.fillText("Ruta 2", 86, 40);
-            x.fillStyle = "#8fa3ae"; x.font = "19px Arial"; x.fillText("Pollo", 86, 64);
-            x.fillStyle = "#24343d"; x.fillRect(18, 100, w - 36, 2);
-            x.fillStyle = "#8fa3ae"; x.font = "22px Arial"; x.fillText(enParada ? "La combi está" : "Próxima combi", 18, 145);
-            x.fillStyle = enParada ? "#5fd08a" : "#f2c200";
-            x.font = enParada ? "bold 40px Arial" : "bold 92px Arial";
-            x.fillText(texto, 16, enParada ? 205 : 222);
-            x.fillStyle = "#8fa3ae"; x.font = "20px Arial";
-            x.fillText(enParada ? "Aborde por la puerta" : "minutos : segundos", 18, 290);
-            x.fillText("lateral derecha", 18, enParada ? 316 : 999);
-            x.fillStyle = "#24343d"; x.fillRect(18, 350, w - 36, 2);
-            x.fillStyle = "#c9d4da"; x.font = "19px Arial";
-            x.fillText(e && !enParada ? `Llega a las ${hhmm(e.llegada)}` : "Base → Centro → Base", 18, 392);
+            // ruta
+            x.fillStyle = R.color; x.beginPath(); x.arc(84, 78, 52, 0, Math.PI * 2); x.fill();
+            const claro = parseInt(R.color.slice(1, 3), 16) * 0.3 + parseInt(R.color.slice(3, 5), 16) * 0.59 + parseInt(R.color.slice(5, 7), 16) * 0.11 > 150;
+            x.fillStyle = claro ? "#0c1419" : "#ffffff"; x.font = "bold 58px Arial"; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(R.numero, 84, 82);
+            x.fillStyle = "#c9d4da"; x.font = "bold 22px Arial"; x.fillText(R.apodo, 84, 162);
+            x.fillStyle = "#24343d"; x.fillRect(170, 22, 3, h - 44);
+            x.textAlign = "left"; x.textBaseline = "alphabetic";
+            if (sinServicio) {
+                x.fillStyle = "#e8734a"; x.font = "bold 64px Arial"; x.fillText("Sin servicio", 196, 92);
+                x.fillStyle = "#c9d4da"; x.font = "26px Arial"; x.fillText(`Primera combi ${hhmm(e.llegada)} · ${R.servicio}`, 198, 150);
+            } else if (enParada) {
+                x.fillStyle = "#5fd08a"; x.font = "bold 76px Arial"; x.fillText("EN PARADA", 196, 102);
+                x.fillStyle = "#c9d4da"; x.font = "26px Arial"; x.fillText("Suba con cuidado", 198, 156);
+            } else {
+                x.fillStyle = "#8fa3ae"; x.font = "26px Arial"; x.fillText("Próxima combi", 198, 46);
+                x.fillStyle = "#f2c200"; x.font = "bold 92px Arial"; x.fillText(texto, 194, 132);
+                x.fillStyle = "#c9d4da"; x.font = "26px Arial"; x.fillText(e ? `llega ${hhmm(e.llegada)}` : "", 198, 174);
+                x.fillStyle = "#8fa3ae"; x.font = "22px Arial"; x.textAlign = "right"; x.fillText("min : seg", w - 22, 46);
+            }
             tex.needsUpdate = true;
         }
         dibujar(null);
-        return { grupo: g, luces: [pantalla], actualizar: dibujar };
+        return { grupo: g, luces: [pantalla], actualizar: dibujar, colgar };
     }
 
     window.Casetas3D = {
         acentos: ACENTOS,
         disenos: {
-            lzc: { nombre: "Caseta LZC", desc: "Modelada en SketchUp: techo con 2 paneles solares, cristal templado, celosía de madera, banca y apoyo isquiático, mapa «Usted está aquí», carga USB, espacio para silla de ruedas y botes de basura separada.", crear: lzc, acento: "amarillo" },
-            solar: { nombre: "Solar básica", desc: "Versión sencilla: techo fotovoltaico, tira LED, banca con respaldo de cristal y franja táctil.", crear: solar, acento: "verde" }
+            lzc: { nombre: "Caseta LZC", desc: "Modelada en SketchUp: techo con 2 paneles solares, cristal templado, celosía de madera, banca y apoyo isquiático, mapa «Usted está aquí», carga USB, espacio para silla de ruedas, botes de basura separada (orgánico, inorgánico y reciclable), banca exterior y pantalla de llegada colgada del techo.", crear: lzc, acento: "amarillo" },
+            solar: { nombre: "Solar básica", desc: "Versión sencilla: techo fotovoltaico, tira LED, banca con respaldo de cristal, franja táctil, botes de basura separada y banca exterior.", crear: solar, acento: "verde" }
         },
         plantillaLZC: null, // la llena el visor al leer modelos/caseta-lzc (caseta-lzc-modelo.js)
         dibujarMapa,

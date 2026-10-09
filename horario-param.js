@@ -10,6 +10,8 @@
     const INICIO = 6 * 3600, FIN = parseFloat(q.get("fin")) || 22 * 3600, DIA = 86400;
 
     const reloj = { modo: "vivo", base: 0, desde: 0, velocidad: 1 };
+    // ?t=segundos del día: la app pidió otra hora (para probar a cualquier hora)
+    if (q.has("t")) { reloj.modo = "sim"; reloj.base = parseFloat(q.get("t")) || 0; reloj.desde = performance.now(); }
     const segundosDelDia = d => d.getHours() * 3600 + d.getMinutes() * 60 + d.getSeconds() + d.getMilliseconds() / 1000;
     function ahora() {
         if (reloj.modo === "vivo") return segundosDelDia(new Date());
@@ -34,6 +36,13 @@
     }
     window.RutaHorario = {
         ahora, estado,
+        // datos de la ruta para la pantalla de la caseta
+        info: {
+            numero: q.get("ruta") || "2",
+            apodo: q.get("apodo") || "Pollo",
+            color: q.get("color") || "#f2c200",
+            servicio: q.get("servicio") || "6:00 a 22:00"
+        },
         espera: ESPERA,
         frecuencia: H / 60,
         modo: () => reloj.modo,
