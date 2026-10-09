@@ -132,7 +132,7 @@
         k.caja(2.4, 0.45, 0.06, -0.2, 0.55, 0.6, banca);
         [-1.4, -0.2, 1.0].forEach(x => k.caja(0.06, 0.45, 0.28, x, 0.55, 0.66, grafito));
         senal(THREE, k, -2.6, 0.95);
-        mobiliario(THREE, k.g, { xBotes: 2.75, xBanca: -3.95, alto: 0.16 });
+        mobiliario(THREE, k.g, { xB0: 1.12, xB1: 1.54, cara: -1, xBanca: -3.95, alto: 0.16 });
         return { grupo: k.g, luces: k.luces, alturaLuz: 2.6, techo: 2.8, actualizar() {} };
     }
 
@@ -442,7 +442,9 @@
         });
         const g = new THREE.Group();
         g.add(grupo);
-        mobiliario(THREE, g, { xBotes: 2.72, botesExistentes: true, xBanca: -3.95 });
+        // los botes sueltos del modelo se cambian por botes soldados junto a la banca
+        grupo.traverse(o => { if (/Bote/i.test(o.name || "") || (o.material && /Bote/i.test(o.material.name || ""))) o.visible = false; });
+        mobiliario(THREE, g, { xB0: -2.2, xB1: -1.78, cara: 1, xBanca: -3.95 });
         return {
             grupo: g, luces, alturaLuz: 2.55, techo: 2.62,
             noche(n) { suaves.forEach(m => { m.emissiveIntensity = 0.08 + 0.75 * n; }); },
@@ -450,10 +452,8 @@
         };
     }
 
-    // ---------- Mobiliario: botes de basura separada y banca exterior ----------
-    // [xBotes]: dónde van los botes (a lo largo de la caseta); [botesExistentes]: la Caseta LZC
-    // ya trae orgánico e inorgánico, aquí sólo se les pone tapa y etiqueta y se agrega el de reciclables.
-    function mobiliario(THREE, g, { xBotes = 2.72, botesExistentes = false, xBanca = -3.95, alto = 0.15 } = {}) {
+    // ---------- Mobiliario: botes de basura soldados junto a la banca, rampa y banca exterior ----------
+    function mobiliario(THREE, g, { xB0 = -2.2, xB1 = -1.78, cara = 1, xBanca = -3.95, alto = 0.15 } = {}) {
         const m = (color, extra = {}) => new THREE.MeshStandardMaterial({ color, roughness: 0.6, metalness: 0.05, ...extra });
         const caja = (lx, ly, lz, x, y, z, mm) => {
             const o = new THREE.Mesh(new THREE.BoxGeometry(lx, ly, lz), mm);
@@ -468,20 +468,27 @@
             x.font = "bold 19px Arial"; x.fillText(texto, 64, 128);
             const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
         };
-        // [y del centro, color cuerpo, color tapa, texto, símbolo]
+        // Botes de basura separada soldados a la caseta, junto a la banca: cuelgan de un marco
+        // de acero (no tocan el piso) entre [xB0] y [xB1]; las etiquetas miran hacia la banca ([cara]).
+        const acero = m(0x2b3237, { metalness: 0.6, roughness: 0.35 });
+        const largoB = xB1 - xB0, xc = (xB0 + xB1) / 2;
+        // [y del centro, color cuerpo, color tapa, texto, letra] (de la calle hacia atrás)
         const botes = [
-            [1.09, 0x1f5caa, 0x163f78, "RECICLA", "R"],
-            [0.15, 0x2f7d5b, 0x1f5f43, "ORGÁNICO", "O"],
-            [0.62, 0x70787e, 0x4a5157, "INORGÁNICO", "I"]
+            [0.14, 0x1f5caa, 0x163f78, "RECICLA", "R"],
+            [0.40, 0x2f7d5b, 0x1f5f43, "ORGÁNICO", "O"],
+            [0.66, 0x70787e, 0x4a5157, "INORGÁNICO", "I"]
         ];
-        botes.forEach(([y, cuerpo, tapa, texto, simbolo], i) => {
-            if (!(botesExistentes && i > 0)) caja(0.44, 0.44, 0.85, xBotes, y, 0, m(cuerpo, { roughness: 0.5 }));
-            caja(0.48, 0.48, 0.07, xBotes, y, 0.85, m(tapa, { roughness: 0.45 }));
-            caja(0.2, 0.06, 0.035, xBotes, y, 0.92, m(0x2b3237));
-            // etiqueta del lado de la calle
-            const e = new THREE.Mesh(new THREE.PlaneGeometry(0.32, 0.4).rotateX(Math.PI / 2),
-                m(0xffffff, { map: etiqueta(texto, "#" + new THREE.Color(tapa).getHexString(), simbolo), roughness: 0.5 }));
-            e.position.set(xBotes, y - 0.225, 0.5);
+        caja(0.05, 0.78, 0.05, xc, 0.4, 0.97, acero);                  // barra superior
+        caja(0.05, 0.78, 0.05, xc, 0.4, 0.24, acero);                  // barra inferior
+        [0.02, 0.78].forEach(y => caja(0.05, 0.05, 0.98, xc, y, 0.0, acero)); // postes al piso de la caseta
+        caja(largoB + 0.06, 0.04, 0.06, xc, 0.8, 0.95, acero);         // soldadura al marco trasero
+        botes.forEach(([y, cuerpo, tapa, texto, letra]) => {
+            caja(largoB, 0.24, 0.62, xc, y, 0.28, m(cuerpo, { roughness: 0.5 }));
+            caja(largoB + 0.03, 0.25, 0.05, xc, y, 0.9, m(tapa, { roughness: 0.45 }));
+            caja(0.05, 0.12, 0.02, xc + cara * (largoB / 2 - 0.06), y, 0.95, acero); // asa
+            const e = new THREE.Mesh(new THREE.PlaneGeometry(0.22, 0.32).rotateY(cara * Math.PI / 2),
+                m(0xffffff, { map: etiqueta(texto, "#" + new THREE.Color(tapa).getHexString(), letra), roughness: 0.5 }));
+            e.position.set(xc + cara * (largoB / 2 + 0.004), y, 0.6);
             g.add(e);
         });
         // rampa para silla de ruedas: baja del piso de la caseta a la banqueta (pendiente ~7 %),
